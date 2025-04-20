@@ -1,0 +1,8 @@
+@utility article {
+  & h1 {
+    @apply text-3xl font-semibold;
+  }
+  & p {
+    @apply my-[1rem];
+  }
+}
