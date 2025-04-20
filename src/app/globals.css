@@ -4,7 +4,7 @@
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: var(--font-sans) Arial, Helvetica, sans-serif;
+  font-family: var(--font-next-sans), Arial, Helvetica, sans-serif;
 }
 
 @theme inline {
