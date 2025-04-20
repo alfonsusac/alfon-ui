@@ -3,7 +3,8 @@ import { cn } from "lazy-cn";
 import type { ComponentProps } from "react";
 import Link from "next/link";
 import { ExpandableFolder, SelectablePageItem } from "./sidebar.client";
-import { FluentTextAlignLeft16Filled, FolderClose, FolderOpen } from "../icons";
+import { CloseSidebarIcon, FluentTextAlignLeft16Filled, FolderClose, FolderOpen } from "../icons";
+import { Button } from "@/lib/components/button"; 
 
 
 
@@ -24,14 +25,20 @@ export function Sidebar({
         "bg-current/3 leading-none",
         "border-r border-current/10",
         "cursor-pointer",
+        "z-20",
         className,
       )}
     >
-      <Link href="/" className="tracking-[-0.05em] font-mono font-medium text-current/75 border-b border-current/15 p-4 -mx-4 -mt-4 hover:bg-current/5">
-        <span>alfon</span>
-        <span className="text-current/50 mx-1">/</span>
-        <span className="text-current">ui</span>
-      </Link>
+      <div className="relative -mx-4 -mt-4 border-b border-current/15 flex items-center">
+        <Link href="/" className="block p-4 tracking-[-0.05em] font-mono font-medium text-current hover:bg-current/5 focus:outline-none">
+          <span>alfon</span>
+          <span className="text-current/50 mx-1">/</span>
+          <span className="text-current">ui</span>
+        </Link>
+        <Button className="absolute right-1 px-1.5" icon>
+          <CloseSidebarIcon className="size-5 fill-current/50"  />
+        </Button>
+      </div>
 
       <div className="text-neutral-600 tracking-tight text-[0.95rem] font-mono pt-2">
         <SidebarItemPage data={{
@@ -53,7 +60,11 @@ export function Sidebar({
 const sidebarItemClassName = cn(
   // "outline **:outline",
   "py-1 pl-4 -mx-4",
-  "focus-visible:outline-3 focus-visible:outline-current/10",
+
+  "focus-visible:outline-3 ",
+  "focus-visible:outline-current/10",
+  "ring-offset-0",
+
   "flex items-center gap-3",
   "hover:bg-current/5",
   "select-none",

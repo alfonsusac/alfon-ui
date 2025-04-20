@@ -1,8 +1,17 @@
 @utility article {
   & h1 {
-    @apply text-3xl font-semibold;
+    @apply text-3xl font-semibold tracking-tight;
   }
   & p {
     @apply my-[1rem];
+    & strong {
+      @apply font-semibold;
+    }
+  }
+  & ul > li {
+    @apply list-disc pl-3 ml-5;
+  }
+  & ol > li {
+    @apply list-decimal pl-3 ml-5;
   }
 }
