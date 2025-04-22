@@ -7,33 +7,35 @@ export async function CodeBlock(props: ComponentProps<"pre"> & {
   code: string;
   lang: BundledLanguage;
 }) {
-  const { code, lang, ...preProps} = props
+  const { code, lang, ...preProps } = props
   const tokens = await codeToTokens(props.code, {
     lang: props.lang,
     theme: "min-light",
   })
   return (
-    <pre {...preProps} className={cn("relative group", preProps.className)}>
-      <CopyCodeButton data={code}  />
-      {tokens.tokens.map((line, i) => (
-        <div key={i}>
-          {line.map((token, j) => (
-            <span
-              key={j}
-              style={{
-                color: token.color,
-                backgroundColor: token.bgColor,
-              }}
-            >
-              {token.content}
-            </span>
-          ))}
-          {line.length === 0 && (i !== tokens.tokens.length - 1) && (
-            <span> </span>
-          )}
-        </div>
-      ))}
-    </pre>
+    <div className="relative group">
+      <CopyCodeButton data={code} />
+      <pre {...preProps} className={cn(preProps.className)}>
+        {tokens.tokens.map((line, i) => (
+          <div key={i}>
+            {line.map((token, j) => (
+              <span
+                key={j}
+                style={{
+                  color: token.color,
+                  backgroundColor: token.bgColor,
+                }}
+              >
+                {token.content}
+              </span>
+            ))}
+            {line.length === 0 && (i !== tokens.tokens.length - 1) && (
+              <span> </span>
+            )}
+          </div>
+        ))}
+      </pre>
+    </div>
   )
 }
 

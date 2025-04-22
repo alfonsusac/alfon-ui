@@ -1,5 +1,7 @@
 import type { ComponentExamplesEntries } from "@/app/docs/components/[name]/page";
-import { CommentIcon, LucideArrowRight, NextStepIcon, TrashIcon } from "@/app/icons";
+import { CommentIcon, NextStepIcon, TrashIcon } from "@/app/icons";
+import { ButtonFormExample } from "../examples/button-form";
+
 
 export const description = "A button component that can be used as a child of other components. It supports different styles and sizes.";
 
@@ -68,7 +70,6 @@ export const Examples: ComponentExamplesEntries = [
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "lazy-cn";
 import type { ComponentProps, SVGProps } from "react";
-import { ButtonFormExample } from "../examples/button-form";
 
 export function Button({
   className,

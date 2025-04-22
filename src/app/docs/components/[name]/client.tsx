@@ -39,8 +39,8 @@ export function ComponentExampleItem(props: {
           "grid grid-rows-[0fr]",
           isOpen && "grid-rows-[1fr]",
         )}>
-          <div className="min-h-0">
-            <div className="border-b-0 border-t border-current/10">
+          <div className="min-h-0 min-w-0">
+            <div className="border-b-0 border-t border-current/10 flex flex-col">
               {props.sourceCode}
             </div>
           </div>
@@ -56,7 +56,7 @@ export function PreviewCard(props: ComponentProps<"div">) {
   return (
     <div {...props} className={cn(
       "grow py-10 px-4 border-current/10 overflow-hidden",
-      "flex items-center justify-center gap-3 flex-wrap",
+      "flex flex-col sm:flex-row items-center justify-center gap-3 flex-wrap",
       "font-sans text-foreground text-base",
       props.className,
     )} />

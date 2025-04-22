@@ -54,7 +54,9 @@ export default async function DocsComponentsPage(props: {
                 name={i.name}
                 description={i.description}
                 jsx={i.jsx}
-                sourceCode={i.sourceCode && <CodeBlock code={i.sourceCode} lang={"tsx"} className="border-none" />}
+                sourceCode={i.sourceCode &&
+                  <CodeBlock code={i.sourceCode} lang={"tsx"} className="border-none min-w-0" />
+                }
               />
             ))}
           </div>
@@ -66,7 +68,7 @@ export default async function DocsComponentsPage(props: {
         </h2>}
 
 
-        <div className="*:first:border-t! *:last:border-b!">
+        <div className="*:first:border-t! *:last:border-b! flex flex-col">
           {!!dependencies?.length &&
             <>
               <CardTitleHintBoxThing>Dependencies</CardTitleHintBoxThing>
