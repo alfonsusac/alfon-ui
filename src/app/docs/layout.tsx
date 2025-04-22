@@ -46,7 +46,10 @@ export default async function DocsRootLayout(props: {
           <div className={cn(sidebarClassName, "")} />
           <div className="px-8 sm:px-16 grow min-w-0">
             <div className={cn(topbarClassName)} />
-            <div className={cn("max-w-(--content-width) mx-auto w-full py-10 article")}>
+            <div className={cn(
+              "max-w-(--content-width) mx-auto w-full py-10 article",
+              "@container/main",
+            )}>
               {props.children}
             </div>
           </div>
