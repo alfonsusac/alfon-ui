@@ -1,9 +1,25 @@
 @utility article {
+  @apply font-mono text-[0.9rem] text-current/80;
   & h1 {
-    @apply text-3xl font-semibold tracking-tight;
+    @apply text-3xl font-semibold tracking-tight mb-2 leading-4;
   }
+  & h2 {
+    @apply text-[1.1rem] font-bold tracking-tight mt-16 mb-2 leading-4;
+    &.muted {
+      @apply text-[0.8rem] uppercase text-current/50 font-medium mb-8
+    }
+  }
+  & h3 {
+    @apply text-[1.1rem] font-bold tracking-tight mt-4 mb-2 leading-2;
+  }
+
+
+  & pre {
+    @apply p-6 text-xs font-mono border border-current/10 overflow-x-auto
+  }
+
   & p {
-    @apply my-[1rem];
+    @apply my-[1rem] text-current/75;
     & strong {
       @apply font-semibold;
     }
@@ -14,4 +30,5 @@
   & ol > li {
     @apply list-decimal pl-3 ml-5;
   }
+
 }

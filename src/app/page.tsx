@@ -19,10 +19,12 @@ export default function Home() {
           <div className="flex flex-col p-1">
             {
               [
-                { title: "🧩  Components", link: "/headless", },
-                { title: "🎨  Design System", link: "/design-system", },
-                { title: "🔧  Hooks", link: "/hooks", },
-                { title: "📦  Miscellaneous", link: "/misc", }
+                { title: "🧩  Docs", link: "/docs", },
+
+                // { title: "🧩  Components", link: "/headless", },
+                // { title: "🎨  Design System", link: "/design-system", },
+                // { title: "🔧  Hooks", link: "/hooks", },
+                // { title: "📦  Miscellaneous", link: "/misc", }
               ].map((i) => {
                 return (
                   <a

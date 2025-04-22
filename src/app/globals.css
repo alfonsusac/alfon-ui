@@ -10,9 +10,25 @@ body {
 @theme inline {
   --color-background: #fff;
   --color-foreground: var(--color-neutral-700);
+  --color-border: --alpha(var(--color-neutral-500) / 0.25);
+  --color-focus: --alpha(var(--color-neutral-500) / 0.25);
+
+  --color-primary: var(--color-neutral-700);
+  --color-primary-hover: color-mix(in oklab, var(--color-background) 8%, var(--color-primary));
+
+  --color-destructive: var(--color-red-600);
+  --color-destructive-border: --alpha(var(--color-destructive) / 0.25);
+  --color-destructive-focus: --alpha(var(--color-destructive) / 0.25);
+  --color-destructive-hover: color-mix(in oklab, var(--color-background) 8%, var(--color-destructive));
+
   --font-sans: var(--font-next-sans);
   --font-mono: var(--font-next-mono);
 }
 
 @custom-variant aria-current-page (&[aria-current="page"]);
 @custom-variant svg (& svg);
+
+
+@utility reset {
+  all: revert;
+}

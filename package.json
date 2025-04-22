@@ -9,18 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@babel/parser": "^7.27.0",
+    "@babel/traverse": "^7.27.0",
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
     "@next/mdx": "15.3.1-canary.15",
     "@radix-ui/react-slot": "^1.2.0",
+    "@types/css": "^0.0.38",
     "@types/mdx": "^2.0.13",
+    "css": "^3.0.0",
     "lazy-cn": "^1.0.0",
     "next": "15.3.1",
+    "postcss": "^8.5.3",
+    "postcss-nested": "^7.0.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "shiki": "^3.2.2",
+    "traverse": "link:@types/@babel/traverse"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.1.4",
+    "@types/babel__traverse": "^7.20.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

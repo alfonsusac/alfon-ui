@@ -16,31 +16,35 @@ export type DocsStructureFile = {
 }
 
 
-export async function getDocsStructure(sourcePath: string, hrefBasePath: `/${ string }`) {
-  console.log("Retrieving docs structure from: ", sourcePath)
+export async function getDocsStructure(sourcePath: string, hrefBasePath: `/${ string }`, extension: string = 'mdx') {
+
   const dir = await readdir(sourcePath, { withFileTypes: true }).catch(e => {
     console.error(e + " - " + sourcePath + " Current dir: " + process.cwd())
     throw e
   })
+
   const structure: DocsStructure[] = []
+
   for (const i of dir) {
     if (i.isDirectory()) {
-      const children = await getDocsStructure(`${ sourcePath }/${ i.name }`, hrefBasePath + `/${ i.name }` as `/${ string }`)
+      const children = await getDocsStructure(`${ sourcePath }/${ i.name }`, hrefBasePath + `/${ i.name }` as `/${ string }`, extension)
+      if (children.length !== 0)
+        structure.push({
+          name: i.name,
+          type: "folder",
+          children
+        })
+    } else if (i.isFile() && i.name.endsWith(`.${ extension }`)) {
+      console.log("Adding file: ", i.name, "searching for", extension)
       structure.push({
-        name: i.name,
-        type: "folder",
-        children
-      })
-    } else if (i.isFile() && i.name.endsWith(".mdx")) {
-      console.log("Adding file: ", i.name)
-      structure.push({
-        name: i.name.split(".mdx")[0],
+        name: i.name.split(`.${ extension }`)[0],
         type: "file",
-        href: resolvePath(hrefBasePath, `/${ i.name.split('.mdx')[0] }`),
+        href: resolvePath(hrefBasePath, `/${ i.name.split(`.${extension}`)[0] }`),
       })
     }
   }
   return structure
+
 }
 
 

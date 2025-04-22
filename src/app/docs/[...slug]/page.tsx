@@ -21,14 +21,14 @@ export default async function DocsArticlePage(props: {
   params: Promise<{ slug: string[] }>
 }) {
   const { slug } = await props.params;
-
   try {
     // Import path cannot be stored in a variable but can be partially dynamic
-    const { default: Post } = await import(`@/lib/${ slug.join("/") }.mdx`)
+    // const { default: Article } = await import(`@/lib/${ slug.join("/") }.mdx`)
     return (
-      <>
-        <Post />
-      </>
+      <div>
+        Hello World
+      </div>
+      // <Article />
     )
   } catch (error) {
     console.error(error)
