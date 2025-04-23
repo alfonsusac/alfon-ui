@@ -1,0 +1,1 @@
+export const input = "An input component is a UI element that allows users to enter data. It can be a text field, checkbox, radio button, or any other type of input element. Inputs are essential for collecting user information and are often used in forms."

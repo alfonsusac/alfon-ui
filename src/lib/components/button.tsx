@@ -1,5 +1,5 @@
 import type { ComponentExamplesEntries } from "@/app/docs/components/[name]/page";
-import { CommentIcon, NextStepIcon, TrashIcon } from "@/app/icons";
+import { CommentIcon, LucideArrowLeft, LucideArrowRight, TrashIcon } from "@/app/icons";
 import { ButtonFormExample } from "../examples/button-form";
 
 
@@ -35,6 +35,11 @@ export const Examples: ComponentExamplesEntries = [
     description: "Button sizes.",
     jsx: <PreviewSizes />
   },
+  {
+    name: "Bare",
+    description: "Button without padding.",
+    jsx: <PreviewBare />,
+  },
 
   // More Examples
 
@@ -49,6 +54,13 @@ export const Examples: ComponentExamplesEntries = [
     name: "Link Button",
     description: "A button that works as a link.",
     jsx: <PreviewLink />,
+    advanced: true
+  },
+  {
+    name: "Rounded",
+    description: "A button with fully rounded corners.",
+    jsx: <PreviewRounded />,
+    advanced: true
   }
 
 
@@ -73,19 +85,19 @@ import type { ComponentProps, SVGProps } from "react";
 export function Button({
   className,
   asChild,
-  primary, outline,
+  primary, outline, bare,
   destructive,
   icon,
   disabled,
   xs, sm, lg, xl,
   ...props
 }: ComponentProps<"button"> & {
-  asChild?: boolean;
-  primary?: boolean; outline?: boolean;
-  destructive?: boolean;
-  icon?: boolean;
-  disabled?: boolean;
-  xs?: boolean; sm?: boolean; lg?: boolean; xl?: boolean;
+  asChild?: boolean,
+  primary?: boolean, outline?: boolean, bare?: boolean,
+  destructive?: boolean,
+  icon?: boolean,
+  disabled?: boolean,
+  xs?: boolean, sm?: boolean, lg?: boolean, xl?: boolean,
 }) {
   const Comp = asChild ? Slot : "button";
   return (
@@ -111,9 +123,8 @@ export function Button({
         "bg-primary hover:bg-primary-hover",
         "shadow-sm"
       ],
-      outline && [
-        "border border-border",
-      ],
+      outline && "border border-border shadow-xs",
+      bare && "p-0 hover:bg-transparent text-foreground/75 hover:text-foreground",
       destructive && [
         "text-destructive",
         "hover:bg-destructive/10",
@@ -167,7 +178,7 @@ function PreviewIcon() {
       </Button>
       <Button primary>
         Next
-        <NextStepIcon />
+        <LucideArrowRight />
       </Button>
     </>
     // </Preview=Icon>
@@ -196,26 +207,42 @@ function PreviewSizes() {
       </div>
       <div className="flex flex-col @xs/previewcard:flex-row gap-2 items-center">
         <Button icon primary xs>
-          <NextStepIcon />
+          <LucideArrowRight />
         </Button>
         <Button icon primary sm>
-          <NextStepIcon />
+          <LucideArrowRight />
         </Button>
         <Button icon primary>
           Send
-          <NextStepIcon />
+          <LucideArrowRight />
         </Button>
         <Button icon primary lg>
           Send
-          <NextStepIcon />
+          <LucideArrowRight />
         </Button>
         <Button icon primary xl>
           Send
-          <NextStepIcon />
+          <LucideArrowRight />
         </Button>
       </div>
     </div>
     // </Preview=Sizes>
+  )
+}
+
+function PreviewBare() {
+  return ( // <Preview=Bare>
+    <div className="flex flex-col">
+      <Button bare>
+        <LucideArrowLeft />
+        Back to Posts
+      </Button>
+      <Button bare>
+        <LucideArrowLeft />
+        Settings
+      </Button>
+    </div>
+    // </Preview=Bare>
   )
 }
 
@@ -231,6 +258,16 @@ function PreviewLink() {
   )
 }
 
+function PreviewRounded() {
+  return ( // <Preview=Rounded>
+    <Button primary lg className="rounded-full px-5">
+      <RiVercelFill />
+      Start Deploying
+    </Button>
+    // </Preview=Rounded>
+  )
+}
+
 
 
 export function MingcuteLoading3Fill(props: SVGProps<SVGSVGElement>) {
@@ -241,5 +278,10 @@ export function MingcuteLoading3Fill(props: SVGProps<SVGSVGElement>) {
 export function SimpleIconsV0(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Simple Icons by Simple Icons Collaborators - https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md */}<path fill="currentColor" d="M14.066 6.028v2.22h5.729q.075-.001.148.005l-5.853 5.752a2 2 0 0 1-.024-.309V8.247h-2.353v5.45c0 2.322 1.935 4.222 4.258 4.222h5.675v-2.22h-5.675q-.03 0-.059-.003l5.729-5.629q.006.082.006.166v5.465H24v-5.465a4.204 4.204 0 0 0-4.205-4.205zM0 8.245l8.28 9.266c.839.94 2.396.346 2.396-.914V8.245H8.19v5.44l-4.86-5.44Z"></path></svg>
+  )
+}
+export function RiVercelFill(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Remix Icon by Remix Design - https://github.com/Remix-Design/RemixIcon/blob/master/License */}<path fill="currentColor" d="M23 21.648H1L12 2.352z"></path></svg>
   )
 }

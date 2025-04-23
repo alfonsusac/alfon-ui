@@ -44,6 +44,9 @@ export default async function DocsComponentsPage(props: {
           {preview && <PreviewCard className="py-20">
             {preview}
           </PreviewCard>}
+          <Link href="#variants" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
+            Variants
+          </Link>
           <Link href="#source" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
             Installation
           </Link>
@@ -53,7 +56,7 @@ export default async function DocsComponentsPage(props: {
         </div>
 
         {!!simpleExamples?.length && <>
-          <h2 className="muted">
+          <h2 className="muted" id="variants">
             Variants
           </h2>
           <div className="flex flex-col gap-8 pb-8">
