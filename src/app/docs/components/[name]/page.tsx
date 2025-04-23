@@ -266,12 +266,13 @@ async function getExamples(fullSourceCode: string | undefined, _componentExample
     const trimmedExampleSourceCode = (() => {
       // remove leading empty lines
       const lines = exampleSourceCode.split('\n')
-      const firstNonEmptyIndex = lines.findIndex(line => !/^\s*$/.test(line))
+      const firstNonEmptyIndex = lines.findIndex(line => /^\s*$/.test(line))
+      console.log(firstNonEmptyIndex)
       // check how many leading spaces are in the first line
-      const trimmedLeadingEmpty = lines.slice(firstNonEmptyIndex)
+      const trimmedLeadingEmpty = lines.slice(firstNonEmptyIndex + 1)
       const leadingSpaces = trimmedLeadingEmpty[0].match(/^\s+/)?.[0]?.length ?? 0
       // remove leading spaces from all lines
-      return lines.map(line => line.slice(leadingSpaces)).join('\n')
+      return trimmedLeadingEmpty.map(line => line.slice(leadingSpaces)).join('\n')
     })()
 
     examples.push({
