@@ -29,6 +29,7 @@ export default async function DocsComponentsPage(props: {
 
     const dependencies = getDependencies(sourceCode)
     const customTokensUsed = await getCustomTokensUsed(sourceCode)
+    const customUtilityUsed = await getUtilityTokenSourceCodeUsed(ComponentSource['utilityUsed'] ?? undefined)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
 
@@ -95,17 +96,34 @@ export default async function DocsComponentsPage(props: {
           {!!customTokensUsed?.length &&
             <>
               <CardTitleHintBoxThing className="border-y-0!">Design Token Used (global.css)</CardTitleHintBoxThing>
-              <pre className="grid border-t-0! grid-cols-[max-content_1fr]">
-                {customTokensUsed.map(i => (
-                  <Fragment key={i.name}>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      --{i.type}-{i.name}:
-                    </div>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      {i.value}
-                    </div>
-                  </Fragment>
-                ))}
+              <pre className="border-t-0! ">
+                {'@theme inline {'}
+                <div className="grid grid-cols-[max-content_1fr] pl-[2ch]">
+                  {customTokensUsed.map(i => (
+                    <Fragment key={i.name}>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        --{i.type}-{i.name}:
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        {i.value}
+                      </div>
+                    </Fragment>
+                  ))}
+                </div>
+                {'}'}
+              {customUtilityUsed?.map((u, i) => (<Fragment key={i}>
+                {'\n\n@utility ' + u.name + ' {'}
+                <div className="pl-[2ch]">
+                  {u.content.split('\n').map((i, index) => (
+                    <Fragment key={index}>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        {i}
+                      </div>
+                    </Fragment>
+                  ))}
+                </div>
+                {'}'}
+              </Fragment>))}
               </pre>
             </>
           }
@@ -161,7 +179,6 @@ function getDependencies(sourceCode?: string) {
 
 async function getCustomTokensUsed(sourceCode?: string) {
   if (!sourceCode) return
-
   const globalCssString = await readFile(`./src/app/globals.css`)
   const globalCss = postcss.parse(globalCssString)
   const customTokenMap = new Map<string, string>()
@@ -216,12 +233,12 @@ async function getCustomTokensUsed(sourceCode?: string) {
       const bareClass = i.split(':').at(-1)?.replace(/\/\d+$/, '')
       return bareClass
     })
-    .filter(i => i && !/[\[\]\(\)]/.test(i)) // filter out bracketed classes
     .filter((item, index, arr) => arr.indexOf(item) === index) // filter duplicates
     .map(i => i as string)
+
   const customTokensUsed = Array.from(customTokenMap)
     .map(i => {
-      const [value, type, name] = i[0].match(/--([a-z]+)-([a-z-]+)$/) ?? [null, null]
+      const [value, type, name] = i[0].match(/--([a-z]+)-([a-z0-9-]+)$/) ?? [null, null]
       if (value === null || type === null || name === null)
         throw new Error("Invalid token name: " + i[0])
       return {
@@ -236,6 +253,29 @@ async function getCustomTokensUsed(sourceCode?: string) {
     })
 
   return customTokensUsed
+}
+async function getUtilityTokenSourceCodeUsed(utilityUsed?: string[]) {
+  if (!utilityUsed) return
+  if (!utilityUsed.length) return
+  const sourceCodes: {
+    name: string,
+    content: string,
+  }[] = []
+  const globalCssString = await readFile(`./src/app/globals.css`, { encoding: "utf-8" })
+  if (!globalCssString) return
+  for (const utility of utilityUsed) {
+    console.log('utility: ',utility)
+    const rawCode = globalCssString
+      .split(`/* ${ utility }-end */`)[0]
+      .split(`@utility input-base {`)[1]
+    if (rawCode) {
+      sourceCodes.push({
+        name: utility,
+        content: rawCode
+      })
+    }
+  }
+  return sourceCodes
 }
 
 export type ComponentExamplesEntries = {
@@ -265,7 +305,12 @@ async function getExamples(fullSourceCode: string | undefined, _componentExample
   for (const ex of ComponentExamples) {
     const exampleSourceCode = await (async () => {
       if (!ex.external) {
-        return fullSourceCode.split('// </Preview=' + ex.name + '>')[0]?.split('// <Preview=' + ex.name + '>')[1] ?? null
+        return fullSourceCode
+          .split('// </Preview=' + ex.name + '>')[0]
+          ?.split('// <Preview=' + ex.name + '>')[1]
+          ?? fullSourceCode
+            .split('{/* End Preview=' + ex.name + ' */}')[0]
+            ?.split('{/* Preview=' + ex.name + ' */}')[1]
       } else {
         const externalSourceCode = await readFile(ex.external, { encoding: "utf-8" })
         return externalSourceCode.split('// </Source>')[0]?.split('// <Source>')[1] ?? null

@@ -28,13 +28,24 @@ body {
   --font-sans: var(--font-next-sans);
   --font-mono: var(--font-next-mono);
 
-  --spacing-xs: 12rem;
+  --spacing-2xs: 18rem;
 }
 
 @custom-variant aria-current-page (&[aria-current="page"]);
 @custom-variant svg (& svg);
 
-
 @utility reset {
   all: revert;
 }
+
+@utility input-base {
+  @apply 
+    grow
+    outline outline-border rounded-md
+    text-sm [--p:calc(var(--spacing)*2)] [--px:calc(var(--spacing)*3)]
+    transition-[outline,box-shadow]
+    [--input-shadow:inset_0_1px_3px_-1px_var(--color-border)]
+    shadow-[0_0_0_0px_var(--color-border),_var(--input-shadow)]
+  ;
+}
+/* input-base-end */
