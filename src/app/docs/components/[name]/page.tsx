@@ -5,6 +5,7 @@ import { readFile } from "fs/promises";
 import postcss from "postcss";
 import { Fragment, type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
+import Link from "next/link";
 
 export function generateStaticParams() {
   return [
@@ -39,9 +40,17 @@ export default async function DocsComponentsPage(props: {
         <h1>{name}</h1>
         <p>{description}</p>
 
-        {preview && <PreviewCard className="border py-20 my-4">
-          {preview}
-        </PreviewCard>}
+        <div className="my-4 border border-current/10 divide-y divide-current/10">
+          {preview && <PreviewCard className="py-20">
+            {preview}
+          </PreviewCard>}
+          <Link href="#source" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
+            Installation
+          </Link>
+          <Link href="#more-example" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
+            More Examples
+          </Link>
+        </div>
 
         {!!simpleExamples?.length && <>
           <h2 className="muted">
@@ -63,7 +72,7 @@ export default async function DocsComponentsPage(props: {
         </>}
 
 
-        {sourceCode && <h2 className="muted">
+        {sourceCode && <h2 className="muted" id="source">
           Source Code
         </h2>}
 
@@ -100,12 +109,12 @@ export default async function DocsComponentsPage(props: {
         </div>
 
         {!!advancedExamples?.length && <>
-          <h2 className="muted">
+          <h2 className="muted" id="more-example">
             More Examples
           </h2>
           <div className="flex flex-col gap-8 pb-8">
             {advancedExamples.map((i, index) => (
-              <ComponentExampleItem 
+              <ComponentExampleItem
                 key={index}
                 name={i.name}
                 description={i.description}
@@ -123,6 +132,8 @@ export default async function DocsComponentsPage(props: {
     return <div>Component not found</div>
   }
 }
+
+// --- Data ------------------------------------------------------------------------
 
 function getSourceCode(code?: string) {
   if (!code) return
@@ -282,3 +293,5 @@ async function getExamples(fullSourceCode: string | undefined, _componentExample
   }
   return examples
 }
+
+// --- Components ------------------------------------------------------------------------

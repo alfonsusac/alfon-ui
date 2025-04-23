@@ -6,7 +6,7 @@
   & h2 {
     @apply text-[1.1rem] font-bold tracking-tight mt-16 mb-2 leading-4;
     &.muted {
-      @apply text-[0.8rem] uppercase text-current/50 font-medium mb-8
+      @apply text-[0.8rem] uppercase text-current/50 font-medium mb-8 pt-16 mt-0
     }
   }
   & h3 {

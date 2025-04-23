@@ -2,7 +2,7 @@
 
 import { CollapsibleChevronIcon } from "@/app/icons"
 import { cn } from "lazy-cn"
-import { Fragment, useState, type ComponentProps, type ReactNode } from "react"
+import { useState, type ComponentProps, type ReactNode } from "react"
 
 export function ComponentExampleItem(props: {
   name: string,
@@ -13,7 +13,7 @@ export function ComponentExampleItem(props: {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="flex flex-col gap-y-4 sm:grid grid-cols-[2fr_5fr] ">
+    <div className="flex flex-col gap-y-4 sm:grid grid-cols-[2fr_5fr] gap-x-2 ">
 
       <div className="min-w-0">
         <h3 className="m-0! leading-4! text-base! text-current mt-2!">{props.name}</h3>
@@ -25,7 +25,6 @@ export function ComponentExampleItem(props: {
         <PreviewCard>
           {props.jsx}
         </PreviewCard>
-
 
         <div className="min-w-0">
           {/* Show Code Button */}
@@ -67,12 +66,15 @@ export function ComponentExampleItem(props: {
 export function PreviewCard(props: ComponentProps<"div">) {
   return (
     <div {...props} className={cn(
-      "@container/main",
+      "@container/previewcard",
       "grow py-10 px-4 border-current/10 overflow-hidden",
-      "flex flex-col @lg/main:flex-row items-center justify-center gap-3 flex-wrap",
       "font-sans text-foreground text-base",
       props.className,
-    )} />
+    )}>
+      <div className="flex flex-col @xs/previewcard:flex-row items-center justify-center gap-3 flex-wrap">
+        {props.children}
+      </div>
+    </div>
   )
 }
 
@@ -86,10 +88,4 @@ export function CardTitleHintBoxThing(props: ComponentProps<"h3">) {
       props.className
     )} />
   )
-}
-
-export function CodeBlockClient(props: {
-
-}) {
-
 }
