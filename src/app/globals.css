@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "./docs/article.style.css";
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
@@ -23,6 +27,8 @@ body {
 
   --font-sans: var(--font-next-sans);
   --font-mono: var(--font-next-mono);
+
+  --spacing-xs: 12rem;
 }
 
 @custom-variant aria-current-page (&[aria-current="page"]);
