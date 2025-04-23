@@ -3,7 +3,7 @@ import { parse } from "@babel/parser";
 import traverse, { type Node } from "@babel/traverse";
 import { readFile } from "fs/promises";
 import postcss from "postcss";
-import { type JSX } from "react";
+import { Fragment, type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 
 export function generateStaticParams() {
@@ -83,16 +83,16 @@ export default async function DocsComponentsPage(props: {
           {!!customTokensUsed?.length &&
             <>
               <CardTitleHintBoxThing className="border-y-0!">Design Token Used (global.css)</CardTitleHintBoxThing>
-              <pre className="grid border-t-0!">
+              <pre className="grid border-t-0! grid-cols-[max-content_1fr]">
                 {customTokensUsed.map(i => (
-                  <div key={i.name} className="grid grid-cols-2">
-                    <span className="text-xs text-muted-foreground font-mono">
+                  <Fragment key={i.name}>
+                    <div className="text-xs text-muted-foreground font-mono">
                       --{i.type}-{i.name}:
-                    </span>
-                    <span className="text-xs text-muted-foreground font-mono">
+                    </div>
+                    <div className="text-xs text-muted-foreground font-mono">
                       {i.value}
-                    </span>
-                  </div>
+                    </div>
+                  </Fragment>
                 ))}
               </pre>
             </>
@@ -105,7 +105,7 @@ export default async function DocsComponentsPage(props: {
           </h2>
           <div className="flex flex-col gap-8 pb-8">
             {advancedExamples.map((i, index) => (
-              <ComponentExampleItem
+              <ComponentExampleItem 
                 key={index}
                 name={i.name}
                 description={i.description}

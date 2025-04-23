@@ -13,49 +13,52 @@ export function ComponentExampleItem(props: {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="flex flex-col border border-current/10">
+    <div className="flex sm:grid grid-cols-[2fr_5fr] ">
 
-      <div className="flex flex-col sm:grid grid-cols-[1fr_3fr] gap-x-2">
 
-        <div className="min-w-0 p-2">
-          <h3 className="m-0! leading-4! text-base! text-current mt-2!">{props.name}</h3>
-          <p className="m-0! text-xs! mt-2!">{props.description}</p>
-        </div>
+      <div className="min-w-0">
+        <h3 className="m-0! leading-4! text-base! text-current mt-2!">{props.name}</h3>
+        <p className="m-0! text-xs! mt-2!">{props.description}</p>
+      </div>
+      
+      <div className="flex flex-col gap-x-2 border border-current/10">
 
-        <PreviewCard className={cn(
-        )}>
+        <PreviewCard>
           {props.jsx}
         </PreviewCard>
 
-      </div>
 
-      <div className="min-w-0">
+        <div className="min-w-0">
+          {/* Show Code Button */}
+          <div
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 bg-current/3 hover:bg-current/6 cursor-pointer select-none border-t border-current/10 flex items-center gap-1">
+            <CollapsibleChevronIcon className={cn(
+              "transition-transform",
+              isOpen && "rotate-90",
+            )} />
+            <span className="text-xs">
+              {isOpen ? "Hide Code" : "Show Code"}
+            </span>
+          </div>
 
-
-        <div
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 bg-current/3 hover:bg-current/6 cursor-pointer select-none border-t border-current/10 flex items-center gap-1">
-          <CollapsibleChevronIcon className={cn(
-            "transition-transform",
-            isOpen && "rotate-90",
-          )} />
-          <span className="text-xs">
-            {isOpen ? "Hide Code" : "Show Code"}
-          </span>
-        </div>
-
-        <div className={cn(
-          "overflow-clip transition-[grid-template-rows]",
-          "grid grid-rows-[0fr]",
-          isOpen && "grid-rows-[1fr]",
-        )}>
-          <div className="min-h-0 min-w-0">
-            <div className="border-b-0 border-t border-current/10 flex flex-col">
-              {props.sourceCode}
+          {/* Expandable Block */}
+          <div className={cn(
+            "overflow-clip transition-[grid-template-rows]",
+            "grid grid-rows-[0fr]",
+            isOpen && "grid-rows-[1fr]",
+          )}>
+            <div className="min-h-0 min-w-0">
+              <div className="border-b-0 border-t border-current/10 flex flex-col">
+                {props.sourceCode}
+              </div>
             </div>
           </div>
         </div>
+
       </div>
+
+
     </div>
   )
 }

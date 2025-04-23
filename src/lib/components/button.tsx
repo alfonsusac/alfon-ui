@@ -27,7 +27,7 @@ export const Examples: ComponentExamplesEntries = [
   },
   {
     name: "Icon",
-    description: "Button with icons. Icons are mostly retrieved from icons.js.org",
+    description: "Button with icons. Icons are mostly retrieved from icones.js.org",
     jsx: <PreviewIcon />
   },
   {
