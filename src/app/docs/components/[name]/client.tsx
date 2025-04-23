@@ -13,8 +13,7 @@ export function ComponentExampleItem(props: {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="flex sm:grid grid-cols-[2fr_5fr] ">
-
+    <div className="flex flex-col gap-y-4 sm:grid grid-cols-[2fr_5fr] ">
 
       <div className="min-w-0">
         <h3 className="m-0! leading-4! text-base! text-current mt-2!">{props.name}</h3>
@@ -87,4 +86,10 @@ export function CardTitleHintBoxThing(props: ComponentProps<"h3">) {
       props.className
     )} />
   )
+}
+
+export function CodeBlockClient(props: {
+
+}) {
+
 }
