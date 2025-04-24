@@ -14,6 +14,7 @@ body {
 @theme inline {
   --color-background: #fff;
   --color-foreground: var(--color-neutral-700);
+  --color-muted: var(--color-neutral-500);
   --color-border: --alpha(var(--color-neutral-500) / 0.25);
   --color-focus: --alpha(var(--color-neutral-500) / 0.25);
 
@@ -39,13 +40,47 @@ body {
 }
 
 @utility input-base {
+  --input-h-sm:                     calc(var(--spacing) * 8);
+  --input-h:                        calc(var(--spacing) * 9);
+  --input-h-lg:                     calc(var(--spacing) * 10);
+  --input-h-xl:                     calc(var(--spacing) * 11);
+  --input-px-sm:                    calc(var(--spacing) * 3);
+  --input-px:                       calc(var(--spacing) * 3);
+  --input-px-lg:                    calc(var(--spacing) * 4);
+  --input-px-xl:                    calc(var(--spacing) * 4.5);
+  --input-shadow-width:             4px;
+  --input-shadow:                   inset 0 1px 3px -1px var(--color-border);
+  --input-shadow-destructive-focus: 0 0 0 var(--input-shadow-width) var(--color-destructive-focus);
+  --input-hover-outline:            --alpha(var(--color-primary)/0.5);
+  
   @apply 
-    grow
-    outline outline-border rounded-md
-    text-sm [--p:calc(var(--spacing)*2)] [--px:calc(var(--spacing)*3)]
+    rounded-md
+    text-sm
+    outline outline-border 
+
     transition-[outline,box-shadow]
-    [--input-shadow:inset_0_1px_3px_-1px_var(--color-border)]
-    shadow-[0_0_0_0px_var(--color-border),_var(--input-shadow)]
+    shadow-[0_0_0_0_var(--color-border),var(--input-shadow)]
+    hover:outline-(--input-hover-outline)
   ;
+  &:disabled {
+    @apply 
+      bg-foreground/5 
+      pointer-events-none 
+      opacity-75
+  }
+  &:where(:focus), 
+  &:where(:focus-within) {
+    @apply 
+      outline-(--input-hover-outline) 
+      shadow-[0_0_0_var(--input-shadow-width)_var(--color-focus),var(--input-shadow)]
+  }
+  &:where([aria-invalid="true"]), 
+  &:where(:has([aria-invalid="true"])) {
+    @apply 
+      outline-destructive/25 
+      hover:outline-destructive/75
+      shadow-[var(--input-shadow-destructive-focus),var(--input-shadow)]
+    ;
+  }
 }
 /* input-base-end */

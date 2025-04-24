@@ -1,6 +1,4 @@
-
-
-export const description = "Input is a UI element that allows users to enter data. It can be a text field, checkbox, radio button, or any other type of input element. Inputs are essential for collecting user information and are often used in forms."
+export const description = "Input is a UI element that allows users to enter data. It can be a text field, checkbox, radio button, or any other type of input element."
 export const utilityUsed = [
   "input-base",
 ]
@@ -14,38 +12,26 @@ export const Preview = <div className="max-w-2xs flex grow">
 import { cn } from "lazy-cn";
 import type { ComponentProps } from "react";
 
-const inputBaseClassNames = cn(
-  "grow",
-  "outline outline-border rounded-md",
-  "text-sm [--p:calc(var(--spacing)*2)] [--px:calc(var(--spacing)*3)]",
-  "transition-[outline,box-shadow]",
-  "[--input-shadow:inset_0_1px_3px_-1px_var(--color-border)]",
-  "shadow-[0_0_0_0px_var(--color-border),_var(--input-shadow)]",
-)
-
 export function Input({
   className,
+  bare,
+  sm, lg, xl,
   ...props
 }: ComponentProps<"input"> & {
   children?: React.ReactNode,
+  bare?: boolean,
+  sm?: boolean, lg?: boolean, xl?: boolean,
 }) {
   return (
     <input {...props} className={cn(
-      "p-(--p) px-(--px)",
-      inputBaseClassNames,
-      !props['aria-invalid'] && [
-        "focus:shadow-[0_0_0_4px_var(--color-border),_var(--input-shadow)]",
-        "hover:outline-primary/50",
-      ],
-      props.disabled && [
-        "bg-foreground/5",
-        "pointer-events-none",
-        "opacity-75",
-      ],
-      props['aria-invalid'] && [
-        "outline-destructive",
-        "shadow-[0_0_0_4px_var(--color-destructive-focus),_var(--input-shadow)]",
-      ],
+      "input-base",
+      "grow min-w-0",
+      "px-(--input-px)",
+      "h-(--input-h)",
+      bare && "outline-none shadow-none",
+      sm && "h-(--input-h-sm) px-(--input-px-sm)",
+      lg && "h-(--input-h-lg) px-(--input-px-lg) text-base",
+      xl && "h-(--input-h-xl) px-(--input-px-xl) text-base",
       className,
     )} />
   )
@@ -70,6 +56,27 @@ export const Examples: ComponentExamplesEntries = [
       {/* Preview=Error */}
       <Input aria-invalid placeholder="Email" />
       {/* End Preview=Error */}
+    </div>
+  },
+  {
+    name: "Bare",
+    description: "A bare input field.",
+    jsx: <div className="flex grow max-w-xs">
+      {/* Preview=Bare */}
+      <Input bare placeholder="Email" />
+      {/* End Preview=Bare */}
+    </div>
+  },
+  {
+    name: "Sizes",
+    description: "Input field with different sizes.",
+    jsx: <div className="flex flex-col gap-3 grow max-w-xs">
+      {/* Preview=Sizes */}
+      <Input placeholder="Email" sm />
+      <Input placeholder="Email" />
+      <Input placeholder="Email" lg />
+      <Input placeholder="Email" xl />
+      {/* End Preview=Sizes */}
     </div>
   }
 ]
