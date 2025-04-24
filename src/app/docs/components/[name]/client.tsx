@@ -3,23 +3,24 @@
 import { CollapsibleChevronIcon } from "@/app/icons"
 import { cn } from "lazy-cn"
 import { useState, type ComponentProps, type ReactNode } from "react"
+import type { ComponentExamplesEntries } from "./page"
 
-export function ComponentExampleItem(props: {
-  name: string,
-  description?: string,
-  jsx: ReactNode,
-  sourceCode?: ReactNode,
+export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number], "sourceCode"> & {
+  sourceCode: ReactNode
 }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="flex flex-col gap-y-4 sm:grid grid-cols-[2fr_5fr] gap-x-2 ">
+    <div className={cn(
+      "flex flex-col gap-y-4 grid-cols-[2fr_5fr] gap-x-2",
+      props.fullWidth ? "sm:flex-col" : "sm:grid",
+    )}>
 
       <div className="min-w-0">
         <h3 className="m-0! leading-4! text-base! text-current mt-2!">{props.name}</h3>
         <p className="m-0! text-xs! mt-2!">{props.description}</p>
       </div>
-      
+
       <div className="flex flex-col gap-x-2 border border-current/10">
 
         <PreviewCard>

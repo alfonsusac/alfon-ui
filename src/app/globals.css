@@ -34,6 +34,7 @@ body {
 
 @custom-variant aria-current-page (&[aria-current="page"]);
 @custom-variant svg (& svg);
+@custom-variant child (:where(&>*));
 
 @utility reset {
   all: revert;
@@ -57,7 +58,6 @@ body {
     rounded-md
     text-sm
     outline outline-border 
-
     transition-[outline,box-shadow]
     shadow-[0_0_0_0_var(--color-border),var(--input-shadow)]
     hover:outline-(--input-hover-outline)
@@ -80,7 +80,6 @@ body {
       outline-destructive/25 
       hover:outline-destructive/75
       shadow-[var(--input-shadow-destructive-focus),var(--input-shadow)]
-    ;
   }
 }
 /* input-base-end */

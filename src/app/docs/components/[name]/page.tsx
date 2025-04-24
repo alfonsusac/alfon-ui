@@ -137,9 +137,7 @@ export default async function DocsComponentsPage(props: {
             {advancedExamples.map((i, index) => (
               <ComponentExampleItem
                 key={index}
-                name={i.name}
-                description={i.description}
-                jsx={i.jsx}
+                {...i}
                 sourceCode={i.sourceCode && <CodeBlock code={i.sourceCode} lang={"tsx"} className="border-none" />}
               />
             ))}
@@ -283,7 +281,7 @@ export type ComponentExamplesEntries = {
   description?: string,
   jsx: JSX.Element,
   advanced?: boolean | "inspiration",
-  fullWidth?: string,
+  fullWidth?: boolean,
   sourceCode?: string,
   external?: string,
 }[]

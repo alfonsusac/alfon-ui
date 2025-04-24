@@ -10,16 +10,32 @@ export const Preview =
     <Button>Share</Button>
     <Button outline>Settings</Button>
     <Button primary>Log In</Button>
-    <Button icon>
-      <CommentIcon />
-    </Button>
     <Button destructive>Delete</Button>
     <Button icon destructive>
       <TrashIcon />
     </Button>
+    <Button icon>
+      <CommentIcon />
+    </Button>
   </>
 
 export const Examples: ComponentExamplesEntries = [
+  {
+    name: "Variants",
+    description: "Different button variants.",
+    jsx: <div className="grid grid-cols-[repeat(4,max-content)] gap-2">
+      {/* Preview=Variants */}
+      <Button>Share</Button>
+      <Button subtle>Settings</Button>
+      <Button outline>Settings</Button>
+      <Button primary>Log In</Button>
+      <Button destructive>Share</Button>
+      <Button destructive subtle>Settings</Button>
+      <Button destructive outline>Settings</Button>
+      <Button destructive primary>Log In</Button>
+      {/* End Preview=Variants */}
+    </div>
+  },
   {
     name: "Disabled",
     description: "Disabled button states.",
@@ -85,19 +101,21 @@ import type { ComponentProps, SVGProps } from "react";
 export function Button({
   className,
   asChild,
-  primary, outline, bare,
+  primary, outline, subtle, bare,
   destructive,
   icon,
   disabled,
+  round,
   xs, sm, lg, xl,
   ...props
 }: ComponentProps<"button"> & {
   asChild?: boolean,
-  primary?: boolean, outline?: boolean, bare?: boolean,
+  primary?: boolean, outline?: boolean, subtle?: boolean, bare?: boolean,
   destructive?: boolean,
   icon?: boolean,
   disabled?: boolean,
   xs?: boolean, sm?: boolean, lg?: boolean, xl?: boolean,
+  round?: boolean,
 }) {
   const Comp = asChild ? Slot : "button";
   return (
@@ -114,28 +132,29 @@ export function Button({
       "focus-visible:outline-4",
       "focus-visible:outline-focus",
       "[&_svg]:size-4 [&_svg]:shrink-0",
-      xs && ["h-6 text-xs px-3", icon && "px-1"],
-      sm && ["h-7.5", icon && "px-2"],
-      lg && ["h-10 [&_svg]:size-4.5", icon && "px-3"],
-      xl && ["h-11 text-base px-5 [&_svg]:size-5", icon && "px-4"],
+      round && "rounded-full",
+      xs && ["h-7 text-xs px-2", icon && "w-7 p-0 justify-center"],
+      sm && ["h-8 px-3", icon && "w-8 p-0 justify-center"],
+      lg && ["h-10 [&_svg]:size-4.5", icon && "w-10 p-0 justify-center"],
+      xl && ["h-11 text-base px-5 [&_svg]:size-5", icon && "w-11 p-0 justify-center"],
       primary && [
         "text-background",
         "bg-primary hover:bg-primary-hover",
         "shadow-sm"
       ],
+      subtle && "bg-primary/5 hover:bg-primary/10",
       outline && "border border-border shadow-xs",
       bare && "p-0 hover:bg-transparent text-foreground/75 hover:text-foreground",
       destructive && [
         "text-destructive",
-        "hover:bg-destructive/10",
+        "hover:bg-destructive/5",
         "focus-visible:outline-destructive-focus",
         primary && [
           "text-background",
           "bg-destructive hover:bg-destructive-hover",
         ],
-        outline && [
-          "border-destructive-border",
-        ]
+        subtle && "bg-destructive/5 shadow-xs",
+        outline && "border-destructive-border",
       ],
       disabled && [
         "cursor-not-allowed",
@@ -212,15 +231,15 @@ function PreviewSizes() {
         <Button icon primary sm>
           <LucideArrowRight />
         </Button>
-        <Button icon primary>
+        <Button primary>
           Send
           <LucideArrowRight />
         </Button>
-        <Button icon primary lg>
+        <Button primary lg>
           Send
           <LucideArrowRight />
         </Button>
-        <Button icon primary xl>
+        <Button primary xl>
           Send
           <LucideArrowRight />
         </Button>

@@ -29,9 +29,9 @@ export function Input({
       "px-(--input-px)",
       "h-(--input-h)",
       bare && "outline-none shadow-none",
-      sm && "h-(--input-h-sm) px-(--input-px-sm)",
-      lg && "h-(--input-h-lg) px-(--input-px-lg) text-base",
-      xl && "h-(--input-h-xl) px-(--input-px-xl) text-base",
+      sm && "h-(--input-h-sm) px-(--input-px-sm) input-sm",
+      lg && "h-(--input-h-lg) px-(--input-px-lg) text-base input-lg",
+      xl && "h-(--input-h-xl) px-(--input-px-xl) text-base input-xl",
       className,
     )} />
   )
