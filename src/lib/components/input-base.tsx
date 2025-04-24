@@ -65,17 +65,21 @@ export const Examples: ComponentExamplesEntries = [
     name: "Adornment",
     description: "An input field with an adornment.",
     advanced: true,
-    jsx: <div className="flex flex-col gap-4 grow max-w-2xs">
+    jsx: <div className="flex flex-col gap-3 grow max-w-2xs">
       {/* Preview=Adornment */}
       <InputBase>
         <Input bare placeholder="Domain" />
-        <div className="pr-(--input-px) text-muted px-(--input-px)">
-          kg
+        <div className="text-muted">kg</div>
+      </InputBase>
+      <InputBase>
+        <div className="text-muted">
+          <LucideAtSign />
         </div>
+        <Input bare placeholder="Email" />
       </InputBase>
       <InputBase>
         <Input bare placeholder="Domain" />
-        <div className="pr-(--input-px) self-stretch text-muted bg-foreground/5 px-2 border-l border-foreground/5">
+        <div className="self-stretch text-muted bg-foreground/5 pl-(--input-px) border-l border-foreground/5">
           @alfon.dev
         </div>
       </InputBase>
@@ -91,6 +95,26 @@ export const Examples: ComponentExamplesEntries = [
       {/* End Preview=Adornment */}
     </div>
   },
+  {
+    name: "With Button",
+    description: "An input field with a button.",
+    advanced: true,
+    jsx: <div className="flex flex-col gap-3 grow max-w-xs">
+      {/* Preview=With Button */}
+      <InputBase>
+        <Input bare placeholder="Email" />
+        <Button xs className="mr-1 px-3" primary>Send</Button>
+      </InputBase>
+      <InputBase>
+        <Input bare placeholder="Email" />
+        <Button outline className="active:translate-0 rounded-l-none border-y-0 border-r-0">Send</Button>
+      </InputBase>
+      {/* End Preview=With Button */}
+    </div>
+  },
+
+
+  // Inspirations
   {
     name: "Prompt Input",
     description: "An input field with a prompt.",
@@ -166,7 +190,6 @@ export function LucideChevronDown(props: SVGProps<SVGSVGElement>) {
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m6 9l6 6l6-6"></path></svg>
   )
 }
-
 export function MaterialSymbolsMenuRounded(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE */}<path fill="currentColor" d="M4 18q-.425 0-.712-.288T3 17t.288-.712T4 16h16q.425 0 .713.288T21 17t-.288.713T20 18zm0-5q-.425 0-.712-.288T3 12t.288-.712T4 11h16q.425 0 .713.288T21 12t-.288.713T20 13zm0-5q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"></path></svg>
@@ -177,9 +200,13 @@ export function LucideSettings(props: SVGProps<SVGSVGElement>) {
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2"></path><circle cx="12" cy="12" r="3"></circle></g></svg>
   )
 }
-
 export function MaterialSymbolsRefresh(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE */}<path fill="currentColor" d="M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V4h2v7h-7V9h4.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.925 0 3.475-1.1T17.65 14h2.1q-.7 2.65-2.85 4.325T12 20"></path></svg>
+  )
+}
+export function LucideAtSign(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path></g></svg>
   )
 }

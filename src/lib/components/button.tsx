@@ -143,7 +143,7 @@ export function Button({
         "shadow-sm"
       ],
       subtle && "bg-primary/5 hover:bg-primary/10",
-      outline && "border border-border shadow-xs",
+      outline && "border border-border shadow-xs active:bg-foreground/8",
       bare && "p-0 hover:bg-transparent text-foreground/75 hover:text-foreground",
       destructive && [
         "text-destructive",

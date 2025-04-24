@@ -1,1 +1,0 @@
-export const description = "Input adornments are used to add additional information or functionality to an input field. They can be used to display icons, text, or other elements that enhance the user experience.";
