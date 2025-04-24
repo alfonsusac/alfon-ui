@@ -111,19 +111,19 @@ export default async function DocsComponentsPage(props: {
                   ))}
                 </div>
                 {'}'}
-              {customUtilityUsed?.map((u, i) => (<Fragment key={i}>
-                {'\n\n@utility ' + u.name + ' {'}
-                <div className="pl-[2ch]">
-                  {u.content.split('\n').map((i, index) => (
-                    <Fragment key={index}>
-                      <div className="text-xs text-muted-foreground font-mono">
-                        {i}
-                      </div>
-                    </Fragment>
-                  ))}
-                </div>
-                {'}'}
-              </Fragment>))}
+                {customUtilityUsed?.map((u, i) => (<Fragment key={i}>
+                  {'\n\n@utility ' + u.name + ' {'}
+                  <div className="pl-[2ch]">
+                    {u.content.split('\n').map((i, index) => (
+                      <Fragment key={index}>
+                        <div className="text-xs text-muted-foreground font-mono">
+                          {i}
+                        </div>
+                      </Fragment>
+                    ))}
+                  </div>
+                  {'}'}
+                </Fragment>))}
               </pre>
             </>
           }
@@ -264,7 +264,7 @@ async function getUtilityTokenSourceCodeUsed(utilityUsed?: string[]) {
   const globalCssString = await readFile(`./src/app/globals.css`, { encoding: "utf-8" })
   if (!globalCssString) return
   for (const utility of utilityUsed) {
-    console.log('utility: ',utility)
+    console.log('utility: ', utility)
     const rawCode = globalCssString
       .split(`/* ${ utility }-end */`)[0]
       .split(`@utility input-base {`)[1]
@@ -282,27 +282,21 @@ export type ComponentExamplesEntries = {
   name: string,
   description?: string,
   jsx: JSX.Element,
-  advanced?: boolean,
+  advanced?: boolean | "inspiration",
+  fullWidth?: string,
   sourceCode?: string,
   external?: string,
 }[]
 
-async function getExamples(fullSourceCode: string | undefined, _componentExamples?: ComponentExamplesEntries) {
-  const ComponentExamples = _componentExamples ?? []
+async function getExamples(fullSourceCode: string | undefined, componentExamples?: ComponentExamplesEntries) {
   try {
-    if (!fullSourceCode || !ComponentExamples || ComponentExamples.length === 0) return
+    if (!fullSourceCode || !componentExamples || componentExamples.length === 0) return
   } catch (error) {
     console.error(error)
     return
   }
-  const examples: {
-    name: string,
-    description?: string,
-    jsx: JSX.Element,
-    advanced?: boolean,
-    sourceCode?: string,
-  }[] = []
-  for (const ex of ComponentExamples) {
+  const examples: ComponentExamplesEntries = []
+  for (const ex of componentExamples) {
     const exampleSourceCode = await (async () => {
       if (!ex.external) {
         return fullSourceCode
