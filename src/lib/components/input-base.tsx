@@ -3,7 +3,6 @@ export const utilityUsed = [
   "input-base",
 ]
 
-import type { ComponentExamplesEntries } from "@/app/docs/components/[name]/page";
 // <Source>
 import { cn } from "lazy-cn";
 import type { ComponentProps, SVGProps } from "react";
@@ -23,19 +22,18 @@ export function InputBase({
       "text-sm",
       "flex grow items-center",
       "overflow-clip",
-      // "px-(--input-px)",
       "[:where(&>*:first-child)]:pl-(--input-px)",
       "[:where(&>*:last-child)]:pr-(--input-px)",
       "[:where(&>*)]:flex",
       "[:where(&>*)]:items-center",
-      // "has-[.input-lg]:text-base",
-      // "has-[.input-xl]:text-base",
       className,
     )} />
   )
 }
 // </Source>
 
+
+import type { ComponentExamplesEntries } from "@/app/docs/components/[name]/page";
 export const Examples: ComponentExamplesEntries = [
   {
     name: "Normal",

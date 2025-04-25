@@ -9,17 +9,15 @@ import Link from "next/link";
 
 export function generateStaticParams() {
   return [
-    {
-      name: "button"
-    }
+    { name: "button" },
   ]
 }
 
 export default async function DocsComponentsPage(props: {
-  params: Promise<{ name: string[] }>
+  params: Promise<{ name: string }>
 }) {
-  const { name } = await props.params;
   try {
+    const { name } = await props.params;
     const ComponentSource = await import(`@/lib/components/${ name }`)
     const description = ComponentSource['description']
     const preview = ComponentSource['Preview']
@@ -28,13 +26,15 @@ export default async function DocsComponentsPage(props: {
     const sourceCode = getSourceCode(rawCode)
 
     const dependencies = getDependencies(sourceCode)
-    const customTokensUsed = await getCustomTokensUsed(sourceCode)
-    const customUtilityUsed = await getUtilityTokenSourceCodeUsed(ComponentSource['utilityUsed'] ?? undefined)
+    const classNamesTokenUsedMap = await getClassNamesTokensUsedSet(sourceCode)
+    const customUtilityUsed = await getUtilityUsedSourceCode(ComponentSource['utilityUsed'] ?? undefined) ?? []
+    const tokensUsedInUtility = getTokensUsedInUtilitySourceCode(customUtilityUsed?.map(c => c.content).join('\n'))
+    const customTokensUsed = await getCustomTokensUsed(new Set([...classNamesTokenUsedMap ?? [], ...tokensUsedInUtility ?? []])) ?? []
+    const globalCSS = constructGlobalCss(customTokensUsed, customUtilityUsed)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
-
-    const simpleExamples = examples?.filter(i => !i.advanced)
-    const advancedExamples = examples?.filter(i => i.advanced)
+    const simpleExamples = examples?.filter(i => !i.advanced) ?? []
+    const advancedExamples = examples?.filter(i => i.advanced) ?? []
 
     return (
       <>
@@ -42,44 +42,44 @@ export default async function DocsComponentsPage(props: {
         <p>{description}</p>
 
         <div className="my-4 border border-current/10 divide-y divide-current/10">
-          {preview && <PreviewCard className="py-20">
-            {preview}
-          </PreviewCard>}
-          <Link href="#variants" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
-            Variants
-          </Link>
-          <Link href="#source" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
-            Installation
-          </Link>
-          <Link href="#more-example" className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">
-            More Examples
-          </Link>
+          {preview ? <PreviewCard className="py-20">{preview}</PreviewCard> : null}
+          {[
+            ["#variants", "Variants"],
+            ["#source", "Installation"],
+            ["#more-example", "More Examples"],
+          ].map(([href, label]) =>
+            <Link key={href} href={href} className="block text-xs p-2 bg-current/3 hover:bg-current/5 cursor-pointer">{label}</Link>
+          )}
         </div>
 
-        {!!simpleExamples?.length && <>
+        {!!simpleExamples.length && <>
           <h2 className="muted" id="variants">
-            Variants
+            Features
           </h2>
           <div className="flex flex-col gap-8 pb-8">
-            {simpleExamples.map((i, index) => (
+            {simpleExamples.map(({ name, description, sourceCode, jsx }, index) => (
               <ComponentExampleItem
                 key={index}
-                name={i.name}
-                description={i.description}
-                jsx={i.jsx}
-                sourceCode={i.sourceCode &&
-                  <CodeBlock code={i.sourceCode} lang={"tsx"} className="border-none min-w-0" />
-                }
+                name={name}
+                description={description}
+                jsx={jsx}
+                sourceCode={sourceCode &&
+                  <CodeBlock
+                    code={sourceCode}
+                    lang={"tsx"}
+                    className="border-none min-w-0"
+                  />}
               />
             ))}
           </div>
         </>}
 
 
-        {sourceCode && <h2 className="muted" id="source">
-          Source Code
-        </h2>}
-
+        {sourceCode &&
+          <h2 className="muted" id="source">
+            Source Code
+          </h2>
+        }
 
         <div className="*:first:border-t! *:last:border-b! flex flex-col">
           {!!dependencies?.length &&
@@ -96,40 +96,12 @@ export default async function DocsComponentsPage(props: {
           {!!customTokensUsed?.length &&
             <>
               <CardTitleHintBoxThing className="border-y-0!">Design Token Used (global.css)</CardTitleHintBoxThing>
-              <pre className="border-t-0! ">
-                {'@theme inline {'}
-                <div className="grid grid-cols-[max-content_1fr] pl-[2ch]">
-                  {customTokensUsed.map(i => (
-                    <Fragment key={i.name}>
-                      <div className="text-xs text-muted-foreground font-mono">
-                        --{i.type}-{i.name}:
-                      </div>
-                      <div className="text-xs text-muted-foreground font-mono">
-                        {i.value}
-                      </div>
-                    </Fragment>
-                  ))}
-                </div>
-                {'}'}
-                {customUtilityUsed?.map((u, i) => (<Fragment key={i}>
-                  {'\n\n@utility ' + u.name + ' {'}
-                  <div className="pl-[2ch]">
-                    {u.content.split('\n').map((i, index) => (
-                      <Fragment key={index}>
-                        <div className="text-xs text-muted-foreground font-mono">
-                          {i}
-                        </div>
-                      </Fragment>
-                    ))}
-                  </div>
-                  {'}'}
-                </Fragment>))}
-              </pre>
+              <CodeBlock code={globalCSS} lang={"sass"} />
             </>
           }
         </div>
 
-        {!!advancedExamples?.length && <>
+        {!!advancedExamples.length && <>
           <h2 className="muted" id="more-example">
             More Examples
           </h2>
@@ -148,7 +120,7 @@ export default async function DocsComponentsPage(props: {
     )
   } catch (error) {
     console.error(error)
-    return <div>Component not found</div>
+    return <pre>Component not found <br />{String(error)} <br />{String(error instanceof Error && error.stack)}</pre>
   }
 }
 
@@ -174,21 +146,8 @@ function getDependencies(sourceCode?: string) {
     .filter(i => !i?.startsWith('./'))
   return dependencies
 }
-
-async function getCustomTokensUsed(sourceCode?: string) {
+async function getClassNamesTokensUsedSet(sourceCode?: string) {
   if (!sourceCode) return
-  const globalCssString = await readFile(`./src/app/globals.css`)
-  const globalCss = postcss.parse(globalCssString)
-  const customTokenMap = new Map<string, string>()
-  globalCss.walkAtRules((rule) => {
-    if (rule.name === 'theme') {
-      rule.walkDecls((decl) => {
-        if (decl.prop.startsWith('--')) {
-          customTokenMap.set(decl.prop, decl.value)
-        }
-      })
-    }
-  })
   const ast = parse(sourceCode, {
     sourceType: "module",
     plugins: ["jsx", "typescript"],
@@ -226,19 +185,43 @@ async function getCustomTokensUsed(sourceCode?: string) {
       }
     }
   });
-  const tokensUsed = Array.from(tailwindClassSet)
-    .map(i => {
-      const bareClass = i.split(':').at(-1)?.replace(/\/\d+$/, '')
-      return bareClass
-    })
+  return tailwindClassSet
+}
+
+async function getCustomTokensUsed(tokensStringSet?: Set<string>) {
+  if (!tokensStringSet) return
+  // tokenStringSet doesn't need to be fancy. It could be just:
+  // bg-primary
+  // text-[var(--color-background)]
+
+  // Extracts css rules inside `@theme inline`
+  // into Map<--props, value>
+  const globalCssString = await readFile(`./src/app/globals.css`)
+  const globalCss = postcss.parse(globalCssString)
+  const customCSSPropertyTokensMap = new Map<string, string>()
+  globalCss.walkAtRules((rule) => {
+    if (rule.name === 'theme') {
+      rule.walkDecls((decl) => {
+        if (decl.prop.startsWith('--')) {
+          customCSSPropertyTokensMap.set(decl.prop, decl.value)
+        }
+      })
+    }
+  })
+
+  // Extract the utility classnames from 
+  // hover:bg-[var(--color-primary)] -> bg-[var(--color-primary)]
+  const classNameTokensUsed = Array.from(tokensStringSet)
+    .map(i => i.split(':').at(-1)?.replace(/\/\d+$/, ''))
     .filter((item, index, arr) => arr.indexOf(item) === index) // filter duplicates
     .map(i => i as string)
 
-  const customTokensUsed = Array.from(customTokenMap)
+  // For each custom css property tokens, match it with classNameTokensUsed.
+  // See if "--color-primary" exists in "bg-[var(--color-primary)] text-background" 
+  const customTokensUsed = Array.from(customCSSPropertyTokensMap)
     .map(i => {
       const [value, type, name] = i[0].match(/--([a-z]+)-([a-z0-9-]+)$/) ?? [null, null]
-      if (value === null || type === null || name === null)
-        throw new Error("Invalid token name: " + i[0])
+      if (value === null || type === null || name === null) throw new Error("Invalid token name: " + i[0])
       return {
         type,
         name,
@@ -246,15 +229,46 @@ async function getCustomTokensUsed(sourceCode?: string) {
       }
     }).filter(i => {
       if (i.type === 'color') {
-        return tokensUsed.some(j => j.includes(i.name))
+        // Later: filter className based on utility supported values
+        // i.e only check against bg-* and text-* and (--color-*) vars
+        return classNameTokensUsed.some(j => j.includes(i.name))
       }
+      // Later: Add more types here if more token types are used (for now just --color-*)
     })
 
   return customTokensUsed
 }
-async function getUtilityTokenSourceCodeUsed(utilityUsed?: string[]) {
-  if (!utilityUsed) return
-  if (!utilityUsed.length) return
+function constructGlobalCss(
+  customTokensUsed: {
+    type: string;
+    name: string;
+    value: string;
+  }[],
+  customUtilitiesUsed: {
+    name: string;
+    content: string;
+  }[]
+) {
+  let result = '@import "tailwindcss";\n\n'
+  if (customTokensUsed.length) {
+    result += '@theme inline {\n'
+    const maxTokenNameWidth = customTokensUsed.reduce((prev, curr) => (curr.name.length > prev) ? (curr.name.length) : (prev), 0) + 1
+    result += customTokensUsed
+      .map(t => `  --${ t.type }-${ (t.name + ':').padEnd(maxTokenNameWidth) } ${ t.value };\n`)
+      .join('')
+    result += '}\n'
+  }
+  if (customUtilitiesUsed.length) {
+    result += '\n'
+    result += customUtilitiesUsed
+      .map(u => `@utility ${ u.name } {\n${ u.content.replace(/^\n/g, '') }\n}\n`)
+  }
+  return result
+}
+
+
+async function getUtilityUsedSourceCode(utilityUsed?: string[]) {
+  if (!utilityUsed || !utilityUsed.length) return
   const sourceCodes: {
     name: string,
     content: string,
@@ -262,10 +276,10 @@ async function getUtilityTokenSourceCodeUsed(utilityUsed?: string[]) {
   const globalCssString = await readFile(`./src/app/globals.css`, { encoding: "utf-8" })
   if (!globalCssString) return
   for (const utility of utilityUsed) {
-    console.log('utility: ', utility)
     const rawCode = globalCssString
-      .split(`/* ${ utility }-end */`)[0]
-      .split(`@utility input-base {`)[1]
+      .split(new RegExp(`^@utility ${ utility } {`, 'm'))[1]
+      .split(/^}/m)[0]
+
     if (rawCode) {
       sourceCodes.push({
         name: utility,
@@ -273,8 +287,20 @@ async function getUtilityTokenSourceCodeUsed(utilityUsed?: string[]) {
       })
     }
   }
+
+  // console.log('utility: ', sourceCodes)
   return sourceCodes
 }
+
+function getTokensUsedInUtilitySourceCode(rawCode?: string) {
+  if (!rawCode) return
+  const propertiesUsed = new Set<string>();
+  Array.from(rawCode.matchAll(/\(--[a-z0-9-]+\)/gi)).forEach(e => {
+    propertiesUsed.add(e[0])
+  })
+  return propertiesUsed
+}
+
 
 export type ComponentExamplesEntries = {
   name: string,
@@ -318,7 +344,6 @@ async function getExamples(fullSourceCode: string | undefined, componentExamples
       // remove leading empty lines
       const lines = exampleSourceCode.split('\n')
       const firstNonEmptyIndex = lines.findIndex(line => /^\s*$/.test(line))
-      console.log(firstNonEmptyIndex)
       // check how many leading spaces are in the first line
       const trimmedLeadingEmpty = lines.slice(firstNonEmptyIndex + 1)
       const leadingSpaces = trimmedLeadingEmpty[0].match(/^\s+/)?.[0]?.length ?? 0
