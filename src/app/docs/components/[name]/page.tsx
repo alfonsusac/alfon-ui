@@ -2,7 +2,8 @@ import { CodeBlock } from "@/lib/components/codeblock";
 import { parse } from "@babel/parser";
 import traverse, { type Node } from "@babel/traverse";
 import { readFile } from "fs/promises";
-import postcss from "postcss";
+import postcss, { type AtRule } from "postcss";
+import declValueParser from 'postcss-value-parser';
 import { Fragment, type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 import Link from "next/link";
@@ -27,10 +28,13 @@ export default async function DocsComponentsPage(props: {
 
     const dependencies = getDependencies(sourceCode)
     const classNamesTokenUsedMap = await getClassNamesTokensUsedSet(sourceCode)
-    const customUtilityUsed = await getUtilityUsedSourceCode(ComponentSource['utilityUsed'] ?? undefined) ?? []
-    const tokensUsedInUtility = getTokensUsedInUtilitySourceCode(customUtilityUsed?.map(c => c.content).join('\n'))
-    const customTokensUsed = await getCustomTokensUsed(new Set([...classNamesTokenUsedMap ?? [], ...tokensUsedInUtility ?? []])) ?? []
-    const globalCSS = constructGlobalCss(customTokensUsed, customUtilityUsed)
+    // const customUtilityUsed = await getUtilityUsedSourceCode(ComponentSource['utilityUsed'] ?? undefined) ?? []
+    // const tokensUsedInUtility = getTokensUsedInUtilitySourceCode(customUtilityUsed?.map(c => c.content).join('\n'))
+    // const customTokensUsed = await getCustomTokensUsed(new Set([...classNamesTokenUsedMap ?? [], ...tokensUsedInUtility ?? []])) ?? []
+    // const globalCSS = constructGlobalCss(customTokensUsed, customUtilityUsed)
+
+    const css = await getGlobalCSS()
+    // console.log(css)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
     const simpleExamples = examples?.filter(i => !i.advanced) ?? []
@@ -38,7 +42,7 @@ export default async function DocsComponentsPage(props: {
 
     return (
       <>
-        <h1>{name}</h1>
+        <h1 className="asdf2-hello">{name}</h1>
         <p>{description}</p>
 
         <div className="my-4 border border-current/10 divide-y divide-current/10">
@@ -93,12 +97,12 @@ export default async function DocsComponentsPage(props: {
               <CardTitleHintBoxThing className="border-y-0!">Source</CardTitleHintBoxThing>
               <CodeBlock code={sourceCode} lang={"tsx"} className="border-y-0!" />
             </>}
-          {!!customTokensUsed?.length &&
+          {/* {!!customTokensUsed?.length &&
             <>
               <CardTitleHintBoxThing className="border-y-0!">Design Token Used (global.css)</CardTitleHintBoxThing>
               <CodeBlock code={globalCSS} lang={"sass"} />
             </>
-          }
+          } */}
         </div>
 
         {!!advancedExamples.length && <>
@@ -131,7 +135,6 @@ function getSourceCode(code?: string) {
   const sourceCode = code.split('// </Source>')[0].split('// <Source>\n')[1]
   return sourceCode
 }
-
 function getDependencies(sourceCode?: string) {
   if (!sourceCode) return
   const dependencies = sourceCode
@@ -187,12 +190,149 @@ async function getClassNamesTokensUsedSet(sourceCode?: string) {
   });
   return tailwindClassSet
 }
+async function getGlobalCSS() {
+  // const defaultTheme = await readFile(`./node_modules/tailwindcss/theme.css`, "utf-8")
+  const globalCssString = await readFile(`./src/app/globals.css`, "utf-8")
+  const parsedCss = postcss.parse(globalCssString)
+  // const parsedCss = await postcss([require('@tailwindcss/postcss')]).process(globalCssString)
+  // const parsedCss = postcss.parse([defaultTheme, globalCssString].join('\n'))
+
+  const cssProps = new Map<string, {
+    raw: string,
+    variableUsed: `--${ string }`[],
+  }>()
+
+  const twUtilities = new Map<string, {
+    parsed: AtRule,
+    valueTypes: `--${ string }-*`[],
+    modifierTypes: `--${ string }-*`[],
+    appliedClassNames?: string[],
+    variants?: string[],
+    cssProps?: `--${ string }`[],
+  }>()
+
+  parsedCss.walkAtRules(rule => {
+    if (rule.name === 'theme') {
+      rule.walkDecls(d => {
+        if (!d.variable) return;
+        const variableUsed = new Set<`--${ string }`>()
+        declValueParser(d.value).walk(v => {
+          if (v.type === "function" && v.value === "var")
+            variableUsed.add(v.nodes[0].value as `--${ string }`)
+        })
+        cssProps.set(d.prop, {
+          raw: d.value,
+          variableUsed: [...variableUsed],
+        })
+      })
+      rule.walkAtRules(r => { if (r.name === 'keyframes') console.warn("@keyframe rule found in @theme") })
+    }
+    if (rule.name === 'utility') {
+
+      // Get @apply
+      const appliedClassNames = new Set<string>()
+      const variants = new Set<string>()
+      rule.walkAtRules(r => {
+        if (r.name === "apply") r.params.split(/\s+/).forEach(u => appliedClassNames.add(u))
+        if (r.name === "variant") variants.add(r.params)
+      })
+
+      // Get --value() and --modifier()
+      const valueTypes = new Set<`--${ string }-*`>()
+      const modifierTypes = new Set<`--${ string }-*`>()
+      const cssProps = new Set<`--${string}`>()
+      rule.walkDecls(d => {
+        declValueParser(d.value).walk(v => {
+          if (v.type === "function") {
+            if (v.value === "--value") {
+              v.nodes.filter(v => v.type === "word").forEach(v => valueTypes.add(v.value as `--${ string }-*`))
+            }
+            if (v.value === "--modifier") {
+              v.nodes.filter(v => v.type === "word").forEach(v => modifierTypes.add(v.value as `--${ string }-*`))
+            }
+            if (v.value === "var") {
+              
+            }
+          }
+        })
+
+
+
+        const getTokenTypeUsedInFunctionCallArguments = (declValue: string, fname: string) => {
+          const tokenTypeUsed = new Set<`--${ string }-*`>()
+          declValueParser(declValue).walk(v => {
+            if (v.type === "function" && v.value === `${ fname }`)
+              v.nodes
+                .filter(v => v.type === "word")
+                .forEach(v => tokenTypeUsed.add(v.value as `--${ string }-*`))
+          })
+          return [...tokenTypeUsed]
+        }
+        getTokenTypeUsedInFunctionCallArguments(d.value, '--value')
+          .forEach(t => valueTypes.add(t))
+        getTokenTypeUsedInFunctionCallArguments(d.value, '--modifier')
+          .forEach(t => modifierTypes.add(t))
+
+      })
+      twUtilities.set(rule.params, {
+        parsed: rule,
+        valueTypes: [...valueTypes],
+        modifierTypes: [...modifierTypes],
+        appliedClassNames: [...appliedClassNames],
+        variants: [...variants],
+      })
+    }
+  })
+
+  // console.log(twUtilities)
+  // cssProps
+  const defaultTokenType = [
+    'animate', 'blur', 'breakpoint', 'color', 'container',
+    'drop-shadow', 'ease', 'font', 'inset-shadow', 'leading',
+    'radius', 'shadow', 'spacing', 'text', 'tracking'
+  ]
+
+  // Stuff found in @custom-variant
+  // - can contain declaration using var from _@theme_
+  // - cannot contain value from @apply (it will be removed)
+
+  // @apply    [custom-variant]:(utility)(value)/(modifier)
+  // - can contain variants in _@custom-variant_ or default variants
+  // - can contain utility in _@utility_ or default utilities
+  // - can contain values from _@theme_ or utility's default themes
+  // - can contain modifier from _@theme_ or utility's default modifiers
+
+  // Stuff found in @theme
+  // - can contain values refering to itself using var()
+  // - can contain value types from default themes (--color, --font, --spacing)
+  // - can contain value types from _@utility_ (--value(--tab-*))
+  // - can contain modifier types from _@utility_
+
+  // Stuff found in @utility
+  // - can contain values from _@apply_ but not its own utility
+  // - can contain declaration using var from _@theme_
+  // - can contain custom value types from _@theme_
+  // - can contain custom modifier types from _@theme_
+
+
+
+
+
+
+
+
+
+
+  return { parsedCss }
+}
 
 async function getCustomTokensUsed(tokensStringSet?: Set<string>) {
   if (!tokensStringSet) return
   // tokenStringSet doesn't need to be fancy. It could be just:
   // bg-primary
   // text-[var(--color-background)]
+
+  type tailwindCSSProp = { type: string, name: string, value: string }
 
   // Extracts css rules inside `@theme inline`
   // into Map<--props, value>
@@ -216,27 +356,44 @@ async function getCustomTokensUsed(tokensStringSet?: Set<string>) {
     .filter((item, index, arr) => arr.indexOf(item) === index) // filter duplicates
     .map(i => i as string)
 
+  const customCSSPropertyTokensGraph = new Map<string, string[]>()
+  customCSSPropertyTokensMap.forEach((val, key) => {
+    customCSSPropertyTokensGraph.set(
+      key,
+      [...val.matchAll(/\((--[a-z0-9-]+)\)/gi)].map(val => val[1])
+    )
+  })
+
   // For each custom css property tokens, match it with classNameTokensUsed.
   // See if "--color-primary" exists in "bg-[var(--color-primary)] text-background" 
-  const customTokensUsed = Array.from(customCSSPropertyTokensMap)
+  const customTokensUsedMap = new Map<string, { type?: string, name?: string, value?: string }>()
+
+  for (const [cssPropKey, cssPropValue] of [...customCSSPropertyTokensMap]) {
+    const [value, type, name] = cssPropKey.match(/--([a-z]+)-([a-z0-9-]+)$/) ?? [null, null]
+    if (value === null || type === null || name === null) {
+      console.log('invalid css prop name: ', cssPropKey)
+      continue
+    }
+    const isUsed = classNameTokensUsed.some(j => j.includes(cssPropKey))
+
+
+  }
+
+  Array.from(customCSSPropertyTokensMap)
     .map(i => {
       const [value, type, name] = i[0].match(/--([a-z]+)-([a-z0-9-]+)$/) ?? [null, null]
       if (value === null || type === null || name === null) throw new Error("Invalid token name: " + i[0])
-      return {
-        type,
-        name,
-        value: i[1]
-      }
+      return { type, name, value: i[1] }
     }).filter(i => {
       if (i.type === 'color') {
         // Later: filter className based on utility supported values
         // i.e only check against bg-* and text-* and (--color-*) vars
-        return classNameTokensUsed.some(j => j.includes(i.name))
+        const isUsed = classNameTokensUsed.some(j => j.includes(i.name))
       }
       // Later: Add more types here if more token types are used (for now just --color-*)
     })
 
-  return customTokensUsed
+  return customTokensUsedMap
 }
 function constructGlobalCss(
   customTokensUsed: {

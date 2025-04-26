@@ -2,7 +2,7 @@
 @import "./docs/article.style.css";
 
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth; */
 }
 
 body {
@@ -12,11 +12,12 @@ body {
 }
 
 @theme inline {
+  /* --e: var(--a, var(--b)) */
   --color-background: #fff;
   --color-foreground: var(--color-neutral-700);
   --color-muted: var(--color-neutral-500);
-  --color-border: --alpha(var(--color-neutral-500) / 0.25);
-  --color-focus: --alpha(var(--color-neutral-500) / 0.25);
+  --color-border: color-mix(in oklab, var(--color-muted) 25%, var(--color-background));
+  --color-focus: color-mix(in oklab, var(--color-muted) 25%, transparent);
 
   --color-primary: var(--color-neutral-700);
   --color-primary-hover: color-mix(in oklab, var(--color-background) 8%, var(--color-primary));
@@ -30,15 +31,47 @@ body {
   --font-mono: var(--font-next-mono);
 
   --spacing-2xs: 18rem;
+
+  /* @keyframes kf1 {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-1px);
+    }
+  } */
+
 }
+
+/* @theme  {
+  --color-bg: #123;
+} */
 
 @custom-variant aria-current-page (&[aria-current="page"]);
 @custom-variant svg (& svg);
-@custom-variant child (:where(&>*));
+/* @custom-variant h1 (&:is(h1)); */
+/* @custom-variant child (:where(&>*));
+
+@custom-variant cvar1 {
+  &:is(h1) {
+    background-color: blue;
+    @apply bg-blue-500;
+    @variant h1{
+      @slot
+    }
+  }
+} */
 
 @utility reset {
   all: revert;
 }
+
+@utility asdf-*{
+  content: --value( --tracking-*, --blur-*, 'initial', 'hello');
+  content: --modifier( --tracking-*, --blur-*, 'initial', 'hello');
+}
+
+
 
 @utility input-base {
   --input-h-sm:                     calc(var(--spacing) * 8);
@@ -52,15 +85,15 @@ body {
   --input-shadow-width:             4px;
   --input-shadow:                   inset 0 1px 3px -1px var(--color-border);
   --input-shadow-destructive-focus: 0 0 0 var(--input-shadow-width) var(--color-destructive-focus);
-  --input-hover-outline:            --alpha(var(--color-primary)/0.5);
-  
+  --input-hover-outline:            --alpha(var(--color-primary)/0.25);
+
   @apply 
     rounded-md
     text-sm
-    outline outline-border 
-    transition-[outline,box-shadow]
+    border border-border/50 outline-none
+    transition-[outline,border,box-shadow]
     shadow-[0_0_0_0_var(--color-border),var(--input-shadow)]
-    hover:outline-(--input-hover-outline)
+    hover:border-(--input-hover-outline)
   ;
   &:disabled {
     @apply 
@@ -71,15 +104,23 @@ body {
   &:where(:focus), 
   &:where(:focus-within) {
     @apply 
-      outline-(--input-hover-outline) 
+      border-(--input-hover-outline) 
       shadow-[0_0_0_var(--input-shadow-width)_var(--color-focus),var(--input-shadow)]
   }
   &:where([aria-invalid="true"]), 
   &:where(:has([aria-invalid="true"])) {
     @apply 
-      outline-destructive/25 
-      hover:outline-destructive/75
+      border-destructive/50
+      hover:border-destructive/75
       shadow-[var(--input-shadow-destructive-focus),var(--input-shadow)]
   }
 }
 /* input-base-end */
+
+
+@utility asdf2-*{
+  &:before{
+    content: --value('hello') --value('world');
+    content: --modifier( --tracking-*, --blur-*, 'initial', 'hello');
+  }
+}

@@ -1,6 +1,6 @@
 import type { ComponentExamplesEntries } from "@/app/docs/components/[name]/page";
 import { CommentIcon, LucideArrowLeft, LucideArrowRight, TrashIcon } from "@/app/icons";
-import { ButtonFormExample } from "../examples/button-form";
+import { ButtonFormWithIconExample } from "../examples/button-form";
 
 
 export const description = "A button component that can be used as a child of other components. It supports different styles and sizes.";
@@ -62,7 +62,7 @@ export const Examples: ComponentExamplesEntries = [
   {
     name: "React 19 Form",
     description: "A button that works under React 19 <form>.",
-    jsx: <ButtonFormExample />,
+    jsx: <ButtonFormWithIconExample />,
     external: "./src/lib/examples/button-form.tsx",
     advanced: true
   },
@@ -104,7 +104,6 @@ export function Button({
   primary, outline, subtle, bare,
   destructive,
   icon,
-  disabled,
   round,
   xs, sm, lg, xl,
   ...props
@@ -156,7 +155,7 @@ export function Button({
         subtle && "bg-destructive/5 shadow-xs",
         outline && "border-destructive-border",
       ],
-      disabled && [
+      props.disabled && [
         "cursor-not-allowed",
         "opacity-50",
         "pointer-events-none",

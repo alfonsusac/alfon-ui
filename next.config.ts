@@ -5,6 +5,7 @@ import createMDX from '@next/mdx'
 const nextConfig: NextConfig = {
   /* config options here */
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  serverExternalPackages: ['@tailwindcss/postcss', 'tailwindcss']
 };
 
 const withMDX = createMDX({

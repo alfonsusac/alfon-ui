@@ -115,7 +115,7 @@ export const Examples: ComponentExamplesEntries = [
   // Inspirations
   {
     name: "Prompt Input",
-    description: "An input field with a prompt.",
+    description: "An input field resembling common LLM input fields.",
     advanced: "inspiration",
     fullWidth: true,
     jsx: <div className="flex grow max-w-md">
@@ -130,6 +130,29 @@ export const Examples: ComponentExamplesEntries = [
         </div>
       </InputBase>
       {/* End Preview=Prompt Input */}
+    </div>
+  },
+  {
+    name: "Credit Card Input",
+    description: "A group of input field resembling credit card input fields.",
+    advanced: "inspiration",
+    fullWidth: true,
+    jsx: <div className="flex grow max-w-xs">
+      {/* Preview=Credit Card Input */}
+      <div className="flex flex-col">
+        <InputBase className="rounded-b-none focus-within:z-10 hover:z-10">
+          <Input bare placeholder="Card number" />
+        </InputBase>
+        <div className="flex -mt-px">
+          <InputBase className="rounded-t-none rounded-r-none focus-within:z-10 hover:z-10">
+            <Input bare placeholder="Card number" />
+          </InputBase>
+          <InputBase className="rounded-t-none rounded-l-none -ml-px">
+            <Input bare placeholder="Card number" />
+          </InputBase>
+        </div>
+      </div>
+      {/* End Preview=Credit Card Input */}
     </div>
   },
   {

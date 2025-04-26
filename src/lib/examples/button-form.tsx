@@ -2,18 +2,19 @@
 
 import type { ComponentProps, SVGProps } from "react"
 
-export const description = "A button that works under React19 <form>."
+export const description = "A button that works under React19 <form> with icons."
 
-export function ButtonFormExample() {
+export function ButtonFormWithIconExample() {
   return (
     <form action={async () => {
       // wait for 1 second
       await new Promise((resolve) => setTimeout(resolve, 1000))
       return
     }}>
-      <SubmitButton>
+      <SubmitButtonWithIcon>
+        <LucideSave />
         Submit
-      </SubmitButton>
+      </SubmitButtonWithIcon>
     </form>
   )
 }
@@ -21,15 +22,21 @@ export function ButtonFormExample() {
 // <Source>
 import { Button } from "../components/button"
 import { useFormStatus } from "react-dom"
+import { cn } from "lazy-cn"
 
-export function SubmitButton(props: ComponentProps<typeof Button>) {
+export function SubmitButtonWithIcon({ className, ...props }:
+  ComponentProps<typeof Button>
+) {
   const { pending } = useFormStatus()
-
   return (
     <Button
       type="submit"
       disabled={pending}
       primary
+      className={cn(
+        "[:where(&:disabled>svg:nth-child(2))]:hidden",
+        className
+      )}
       {...props}
     >
       {pending && <MingcuteLoading3Fill className="animate-spin" />}
@@ -44,3 +51,10 @@ export function MingcuteLoading3Fill(props: SVGProps<SVGSVGElement>) {
   )
 }
 // </Source>
+
+
+export function LucideSave(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"></path></g></svg>
+  )
+}
