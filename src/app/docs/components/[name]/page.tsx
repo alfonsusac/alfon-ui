@@ -3,10 +3,11 @@ import { parse } from "@babel/parser";
 import traverse, { type Node } from "@babel/traverse";
 import { readFile } from "fs/promises";
 import postcss, { type AtRule } from "postcss";
-import declValueParser from 'postcss-value-parser';
 import { Fragment, type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 import Link from "next/link";
+import { twp, type CssVariable, type ThemedTokenType } from "@/lib/css";
+import { getGlobalCSSDependencyList, parseTailwindClass, processClassName, resolveCssVarsDependencyList, resolveCustomVariantDependencyList } from "@/lib/css-graph";
 
 export function generateStaticParams() {
   return [
@@ -33,8 +34,32 @@ export default async function DocsComponentsPage(props: {
     // const customTokensUsed = await getCustomTokensUsed(new Set([...classNamesTokenUsedMap ?? [], ...tokensUsedInUtility ?? []])) ?? []
     // const globalCSS = constructGlobalCss(customTokensUsed, customUtilityUsed)
 
-    const css = await getGlobalCSS()
-    // console.log(css)
+    const globalcss = await readFile(`./src/app/globals.css`, "utf-8")
+    const cssdeps = getGlobalCSSDependencyList(globalcss)
+    const resolvedCssVarsDeps = resolveCssVarsDependencyList(cssdeps.variableDeclarations)
+    const resolvedCustomVariantDeps = resolveCustomVariantDependencyList(cssdeps.atCustomVariants, resolvedCssVarsDeps.variableDeclarations)
+
+    const inputs = [
+      "hover:active:min-[123]:wow-[var(yeah)]:bg-(var(--test))/[var(--hello)]",
+      "min-[123]:[yeahyeah]/(123)",
+      "[hello-world]/[test]",
+      "[mhm]",
+    ]
+    const results: any[] = []
+
+    inputs.map(t => {
+      console.log(`\nInput: ${ t }`)
+      try {
+        const res = parseTailwindClass(t)
+        console.log(`  variants : ${ res.variants }`)
+        console.log(`  utility  : ${ res.utility }`)
+        console.log(`  modifier : ${ res.modifier }`)
+      } catch (error) {
+        console.log(String(error))
+      }
+    })
+
+    console.log('\n')
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
     const simpleExamples = examples?.filter(i => !i.advanced) ?? []
@@ -190,129 +215,121 @@ async function getClassNamesTokensUsedSet(sourceCode?: string) {
   });
   return tailwindClassSet
 }
-async function getGlobalCSS() {
-  // const defaultTheme = await readFile(`./node_modules/tailwindcss/theme.css`, "utf-8")
-  const globalCssString = await readFile(`./src/app/globals.css`, "utf-8")
-  const parsedCss = postcss.parse(globalCssString)
-  // const parsedCss = await postcss([require('@tailwindcss/postcss')]).process(globalCssString)
-  // const parsedCss = postcss.parse([defaultTheme, globalCssString].join('\n'))
+// async function getGlobalCSS() {
+//   // const defaultTheme = await readFile(`./node_modules/tailwindcss/theme.css`, "utf-8")
+//   const globalCssString = await readFile(`./src/app/globals.css`, "utf-8")
+//   const parsedCss = postcss.parse(globalCssString)
+//   // const parsedCss = await postcss([require('@tailwindcss/postcss')]).process(globalCssString)
+//   // const parsedCss = postcss.parse([defaultTheme, globalCssString].join('\n'))
 
-  const cssProps = new Map<string, {
-    raw: string,
-    variableUsed: `--${ string }`[],
-  }>()
+//   // -- Parse Flat GlobalCSS ----
+//   const cssProps = new Map<string, {
+//     raw: string,
+//     variableUsed: CssVariable[],
+//   }>()
 
-  const twUtilities = new Map<string, {
-    parsed: AtRule,
-    valueTypes: `--${ string }-*`[],
-    modifierTypes: `--${ string }-*`[],
-    appliedClassNames?: string[],
-    variants?: string[],
-    cssProps?: `--${ string }`[],
-  }>()
+//   const twUtilities = new Map<string, {
+//     parsed: AtRule,
+//     valueTypes: ThemedTokenType[],
+//     modifierTypes: ThemedTokenType[],
+//     deps: {
+//       appliedClassNames: string[],
+//       variants: string[],
+//       cssVariables: CssVariable[], // missing from @apply.
+//     }
+//   }>()
 
-  parsedCss.walkAtRules(rule => {
-    if (rule.name === 'theme') {
-      rule.walkDecls(d => {
-        if (!d.variable) return;
-        const variableUsed = new Set<`--${ string }`>()
-        declValueParser(d.value).walk(v => {
-          if (v.type === "function" && v.value === "var")
-            variableUsed.add(v.nodes[0].value as `--${ string }`)
-        })
-        cssProps.set(d.prop, {
-          raw: d.value,
-          variableUsed: [...variableUsed],
-        })
-      })
-      rule.walkAtRules(r => { if (r.name === 'keyframes') console.warn("@keyframe rule found in @theme") })
-    }
-    if (rule.name === 'utility') {
+//   const twCustomVariants = new Map<string, {
+//     parsed: AtRule,
+//     deps: {
+//       cssVariables: CssVariable[], // good, doesn't read @apply
+//     }
+//   }>
 
-      // Get @apply
-      const appliedClassNames = new Set<string>()
-      const variants = new Set<string>()
-      rule.walkAtRules(r => {
-        if (r.name === "apply") r.params.split(/\s+/).forEach(u => appliedClassNames.add(u))
-        if (r.name === "variant") variants.add(r.params)
-      })
+//   parsedCss.walkAtRules(rule => {
+//     if (rule.name === 'theme') {
+//       rule.walkDecls(d => {
+//         if (!d.variable) return;
+//         const variableUsed = new Set<CssVariable>()
+//         twp.parseDecl(d.value).walk(v => {
+//           if (twp.isVarFunction(v)) variableUsed.add(v.nodes[0].value)
+//         })
+//         cssProps.set(d.prop, {
+//           raw: d.value,
+//           variableUsed: [...variableUsed],
+//         })
+//       })
+//       rule.walkAtRules(r => { if (r.name === 'keyframes') console.warn("@keyframe rule found in @theme") })
+//     }
+//     if (rule.name === 'utility') {
+//       // Get @apply and @variant
+//       const appliedClassNames = new Set<string>()
+//       const variants = new Set<string>()
+//       rule.walkAtRules(r => {
+//         if (r.name === "apply") twp.extractCn(r.params).forEach(u => appliedClassNames.add(u))
+//         if (r.name === "variant") variants.add(r.params)
+//       })
 
-      // Get --value() and --modifier()
-      const valueTypes = new Set<`--${ string }-*`>()
-      const modifierTypes = new Set<`--${ string }-*`>()
-      const cssProps = new Set<`--${string}`>()
-      rule.walkDecls(d => {
-        declValueParser(d.value).walk(v => {
-          if (v.type === "function") {
-            if (v.value === "--value") {
-              v.nodes.filter(v => v.type === "word").forEach(v => valueTypes.add(v.value as `--${ string }-*`))
-            }
-            if (v.value === "--modifier") {
-              v.nodes.filter(v => v.type === "word").forEach(v => modifierTypes.add(v.value as `--${ string }-*`))
-            }
-            if (v.value === "var") {
-              
-            }
-          }
-        })
+//       // Get --value() and --modifier() and var()
+//       const valueTypes = new Set<`--${ string }-*`>()
+//       const modifierTypes = new Set<`--${ string }-*`>()
+//       const cssVariables = new Set<`--${ string }`>()
+//       rule.walkDecls(d => {
+//         twp.parseDecl(d.value).walk(v => {
+//           if (v.type === "function") {
+//             if (v.value === "--value")
+//               twp.extractTwTypePattern(v).forEach(v => valueTypes.add(v))
+//             if (v.value === "--modifier")
+//               twp.extractTwTypePattern(v).forEach(v => modifierTypes.add(v))
+//             if (twp.isVarFunction(v))
+//               cssVariables.add(v.nodes[0].value)
+//           }
+//         })
+//       })
+//       twUtilities.set(rule.params, {
+//         parsed: rule,
+//         valueTypes: [...valueTypes],
+//         modifierTypes: [...modifierTypes],
+//         deps: {
+//           appliedClassNames: [...appliedClassNames],
+//           variants: [...variants],
+//           cssVariables: [...cssVariables]
+//         }
+//       })
+//     }
+//     if (rule.name === "custom-variant") {
+//       const variantName = rule.params.split(/\s+/)[0]
+//       const cssVariables = new Set<CssVariable>()
+//       rule.walkDecls(d => {
+//         twp.parseDecl(d.value).walk(v => {
+//           if (twp.isVarFunction(v))
+//             cssVariables.add(v.nodes[0].value)
+//         })
+//       })
+//       twCustomVariants.set(variantName, {
+//         parsed: rule,
+//         deps: { cssVariables: [...cssVariables] }
+//       })
+//     }
+//   })
 
+//   console.log(twUtilities)
+//   // cssProps
 
+//   // -- Construct Dependency Graph ----
 
-        const getTokenTypeUsedInFunctionCallArguments = (declValue: string, fname: string) => {
-          const tokenTypeUsed = new Set<`--${ string }-*`>()
-          declValueParser(declValue).walk(v => {
-            if (v.type === "function" && v.value === `${ fname }`)
-              v.nodes
-                .filter(v => v.type === "word")
-                .forEach(v => tokenTypeUsed.add(v.value as `--${ string }-*`))
-          })
-          return [...tokenTypeUsed]
-        }
-        getTokenTypeUsedInFunctionCallArguments(d.value, '--value')
-          .forEach(t => valueTypes.add(t))
-        getTokenTypeUsedInFunctionCallArguments(d.value, '--modifier')
-          .forEach(t => modifierTypes.add(t))
+//   // TODO: Get what stuff is needed for every css variables in @themes
+//   const resolvedCssPropsNeeds = []
 
-      })
-      twUtilities.set(rule.params, {
-        parsed: rule,
-        valueTypes: [...valueTypes],
-        modifierTypes: [...modifierTypes],
-        appliedClassNames: [...appliedClassNames],
-        variants: [...variants],
-      })
-    }
-  })
+//   cssProps.forEach(cssProp => {
+//     const cssPropUsed = new Set<string>()
 
-  // console.log(twUtilities)
-  // cssProps
-  const defaultTokenType = [
-    'animate', 'blur', 'breakpoint', 'color', 'container',
-    'drop-shadow', 'ease', 'font', 'inset-shadow', 'leading',
-    'radius', 'shadow', 'spacing', 'text', 'tracking'
-  ]
+//     const curr = cssProp
+//     const stack: string[] = []
+//     while (true) {
 
-  // Stuff found in @custom-variant
-  // - can contain declaration using var from _@theme_
-  // - cannot contain value from @apply (it will be removed)
-
-  // @apply    [custom-variant]:(utility)(value)/(modifier)
-  // - can contain variants in _@custom-variant_ or default variants
-  // - can contain utility in _@utility_ or default utilities
-  // - can contain values from _@theme_ or utility's default themes
-  // - can contain modifier from _@theme_ or utility's default modifiers
-
-  // Stuff found in @theme
-  // - can contain values refering to itself using var()
-  // - can contain value types from default themes (--color, --font, --spacing)
-  // - can contain value types from _@utility_ (--value(--tab-*))
-  // - can contain modifier types from _@utility_
-
-  // Stuff found in @utility
-  // - can contain values from _@apply_ but not its own utility
-  // - can contain declaration using var from _@theme_
-  // - can contain custom value types from _@theme_
-  // - can contain custom modifier types from _@theme_
+//     }
+//   })
 
 
 
@@ -320,11 +337,45 @@ async function getGlobalCSS() {
 
 
 
+//   const defaultTokenType = [
+//     'animate', 'blur', 'breakpoint', 'color', 'container',
+//     'drop-shadow', 'ease', 'font', 'inset-shadow', 'leading',
+//     'radius', 'shadow', 'spacing', 'text', 'tracking'
+//   ]
+
+//   // Stuff found in @custom-variant
+//   // - can contain declaration using var from _@theme_
+//   // - cannot contain value from @apply (it will be removed)
+
+//   // @apply    [custom-variant]:(utility)(value)/(modifier)
+//   // - can contain variants in _@custom-variant_ or default variants
+//   // - can contain utility in _@utility_ or default utilities
+//   // - can contain values from _@theme_ or utility's default themes
+//   // - can contain modifier from _@theme_ or utility's default modifiers
+
+//   // Stuff found in @theme
+//   // - can contain values refering to itself using var()
+//   // - can contain value types from default themes (--color, --font, --spacing)
+//   // - can contain value types from _@utility_ (--value(--tab-*))
+//   // - can contain modifier types from _@utility_
+
+//   // Stuff found in @utility
+//   // - can contain values from _@apply_ but not its own utility
+//   // - can contain declaration using var from _@theme_
+//   // - can contain custom value types from _@theme_
+//   // - can contain custom modifier types from _@theme_
 
 
 
-  return { parsedCss }
-}
+
+
+
+
+
+
+
+//   return { parsedCss }
+// }
 
 async function getCustomTokensUsed(tokensStringSet?: Set<string>) {
   if (!tokensStringSet) return

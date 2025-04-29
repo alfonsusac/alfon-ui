@@ -49,6 +49,12 @@ body {
 
 @custom-variant aria-current-page (&[aria-current="page"]);
 @custom-variant svg (& svg);
+@custom-variant test {
+  .test{
+    background-color: var(--color-border);
+    @slot
+  }
+};
 /* @custom-variant h1 (&:is(h1)); */
 /* @custom-variant child (:where(&>*));
 
@@ -68,7 +74,7 @@ body {
 
 @utility asdf-*{
   content: --value( --tracking-*, --blur-*, 'initial', 'hello');
-  content: --modifier( --tracking-*, --blur-*, 'initial', 'hello');
+  content: --modifier( --tracking-*, --spacing-*, 'initial', 'hello');
 }
 
 

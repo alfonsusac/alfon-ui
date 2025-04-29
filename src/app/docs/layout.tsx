@@ -3,6 +3,7 @@ import { getAppDocsStructure } from "../docs";
 import { Sidebar } from "./sidebar";
 import { Button } from "@/lib/components/button";
 import { CommentIcon } from "../icons";
+import { readdir } from "fs/promises";
 
 
 const sidebarClassName = "hidden md:flex  w-56 shrink-0"
@@ -13,6 +14,8 @@ export default async function DocsRootLayout(props: {
   children: React.ReactNode;
 }) {
   const docs = await getAppDocsStructure()
+  const tools = await readdir('./src/app/docs/tools')
+
   return (
     <div className="min-h-screen"
       style={{
@@ -28,7 +31,7 @@ export default async function DocsRootLayout(props: {
           <div className={cn(sidebarClassName)} />
           <div className="flex items-center border-b border-transparent p-2 grow">
             <div className="grow"></div>
-            <div className="flex gap-1 items-center">
+            <div className="flex gap-1 items-center font-mono">
               <Button>
                 Share
               </Button>
@@ -40,7 +43,13 @@ export default async function DocsRootLayout(props: {
         </div>
 
         {/* Sidebar */}
-        <Sidebar docs={docs} className={cn(sidebarClassName, "h-screen fixed top-0")} />
+        <Sidebar
+          docs={docs}
+          tools={tools}
+          className={cn(sidebarClassName,
+            "h-screen fixed top-0"
+          )}
+        />
 
         <div className="mx-auto flex w-full">
           <div className={cn(sidebarClassName, "")} />

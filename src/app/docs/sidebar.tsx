@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import Link from "next/link";
 import { ExpandableFolder, SelectablePageItem } from "./sidebar.client";
 import { CloseSidebarIcon, FluentTextAlignLeft16Filled, FolderClose, FolderOpen } from "../icons";
-import { Button } from "@/lib/components/button"; 
+import { Button } from "@/lib/components/button";
 
 
 
@@ -14,6 +14,7 @@ export function Sidebar({
   ...props
 }: ComponentProps<"div"> & {
   docs: DocsStructure[]
+  tools: string[]
 }) {
   return (
     <div
@@ -36,7 +37,7 @@ export function Sidebar({
           <span className="text-current">ui</span>
         </Link>
         <Button className="absolute right-1 px-1.5" icon>
-          <CloseSidebarIcon className="size-5 fill-current/50"  />
+          <CloseSidebarIcon className="size-5 fill-current/50" />
         </Button>
       </div>
 
@@ -51,6 +52,15 @@ export function Sidebar({
             return <SidebarItemFolder key={i.name} data={i} />
           return <SidebarItemPage key={i.name} data={i} />
         })}
+        <SidebarItemFolder data={{
+          name: "tools",
+          type: "folder",
+          children: props.tools.map(i => ({
+            name: i,
+            href: `/docs/tools/${ i }`,
+            type: "file",
+          }))
+        }} />
       </div>
     </div>
   )
