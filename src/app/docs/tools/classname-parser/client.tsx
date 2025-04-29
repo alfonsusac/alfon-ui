@@ -60,26 +60,28 @@ export function ClassNameParserClient() {
         </div>
       </div>
 
+      <hr className="border-border" />
 
-      <div className="flex flex-col gap-[1px]">
+
+      <div className="flex flex-col gap-4 pt-4">
         {parsedlist.map((parsed, i) => {
           return (
-            <div className="card text-sm">
+            <div className="text-sm">
               <div className="text-xs uppercase font-bold tracking-tighter text-muted/50">class #{i + 1}</div>
               {
                 parsed.res ? (
                   <div key={i} className="grid grid-cols-[6rem_1fr]">
                     {
                       parsed.res.variants.length > 0 && <>
-                        <div className="text-muted/25">variants :</div>
+                        <div className="text-muted/50">variants :</div>
                         <div>{parsed.res.variants.join(', ')}</div>
                       </>
                     }
-                    <div className="text-muted/25">utility :</div>
+                    <div className="text-muted/50">utility :</div>
                     <div>{parsed.res.utility}</div>
                     {
                       parsed.res.modifier && <>
-                        <div className="text-muted/25">modifier :</div>
+                        <div className="text-muted/50">modifier :</div>
                         <div>{parsed.res.modifier}</div>
                       </>
                     }
