@@ -19,82 +19,70 @@ export function ClassNameParserClient() {
   })()
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       <div className="flex">
         <Input value={input} onChange={e => setInput(e.currentTarget.value)} />
       </div>
 
-      <div className="py-4">
+      <div className="">
         <span className="font-bold text-xs text-muted/50">INPUT</span>
         <div className="tracking-tighter text-muted/50 whitespace-pre-wrap flex flex-wrap gap-x-2">
-          {
-            parsedlist.map((parsed, i) => {
-              if (!parsed.res) {
-                return <span key={i} className="">
-                  {input.split(/\s+/)[i]}
+          {parsedlist.map((parsed, i) => {
+            if (!parsed.res) {
+              return <span key={i} className="">
+                {input.split(/\s+/)[i]}
+              </span>
+            }
+            return (
+              <div key={i}>
+                {parsed.res.variants.map((v, i) =>
+                  <Fragment key={i}>
+                    <span className="text-muted/75 italic">{v}</span>:
+                  </Fragment>
+                )}
+                <span className="text-muted/90 font-semibold">
+                  {parsed.res.utility}
                 </span>
-              }
-              return (
-                <div key={i}>
-                  {parsed.res.variants.map((v, i) => {
-                    return <Fragment key={i}>
-                      <span className="text-muted/75 italic">{v}</span>:
-                    </Fragment>
-                  })}
-                  <span className="text-muted/90 font-semibold">
-                    {parsed.res.utility}
-                  </span>
-                  {parsed.res.modifier
-                    ? <Fragment>
-                      /
-                      <span className="text-blue-700/75 ">
-                        {parsed.res.modifier}
-                      </span>
-                    </Fragment>
-                    : null}
-                  <span> </span>
-                </div>
-              )
-            })
+                {!!parsed.res.modifier
+                  && <>/
+                    <span className="text-blue-700/75 ">
+                      {parsed.res.modifier}
+                    </span>
+                  </>}
+              </div>
+            )
+          })
           }
         </div>
       </div>
 
       <hr className="border-border" />
 
-
-      <div className="flex flex-col gap-4 pt-4">
-        {parsedlist.map((parsed, i) => {
-          return (
-            <div className="text-sm">
-              <div className="text-xs uppercase font-bold tracking-tighter text-muted/50">class #{i + 1}</div>
-              {
-                parsed.res ? (
-                  <div key={i} className="grid grid-cols-[6rem_1fr]">
-                    {
-                      parsed.res.variants.length > 0 && <>
-                        <div className="text-muted/50">variants :</div>
-                        <div>{parsed.res.variants.join(', ')}</div>
-                      </>
-                    }
-                    <div className="text-muted/50">utility :</div>
-                    <div>{parsed.res.utility}</div>
-                    {
-                      parsed.res.modifier && <>
-                        <div className="text-muted/50">modifier :</div>
-                        <div>{parsed.res.modifier}</div>
-                      </>
-                    }
-                  </div>
-                ) : (
-                  <div className="text-red-500/70 font-medium">
-                    {parsed.error}
-                  </div>
-                )
-              }
-            </div>
-          )
-        })}
+      <div className="flex flex-col gap-4">
+        {parsedlist.map((parsed, i) =>
+          <div key={i} className="text-sm">
+            <div className="text-xs uppercase font-bold tracking-tighter text-muted/50">class #{i + 1}</div>
+            {parsed.res
+              ? (
+                <div className="grid grid-cols-[6rem_1fr]">
+                  {parsed.res.variants.length > 0 && <>
+                    <div className="text-muted/50">variants :</div>
+                    <div>{parsed.res.variants.join(', ')}</div>
+                  </>}
+                  <div className="text-muted/50">utility :</div>
+                  <div>{parsed.res.utility}</div>
+                  {parsed.res.modifier && <>
+                    <div className="text-muted/50">modifier :</div>
+                    <div>{parsed.res.modifier}</div>
+                  </>}
+                </div>
+              ) : (
+                <div className="text-red-500/70 font-medium">
+                  {parsed.error}
+                </div>
+              )}
+          </div>
+        )}
       </div>
 
     </div>
