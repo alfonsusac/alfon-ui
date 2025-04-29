@@ -77,8 +77,6 @@ body {
   content: --modifier( --tracking-*, --spacing-*, 'initial', 'hello');
 }
 
-
-
 @utility input-base {
   --input-h-sm:                     calc(var(--spacing) * 8);
   --input-h:                        calc(var(--spacing) * 9);
@@ -129,4 +127,9 @@ body {
     content: --value('hello') --value('world');
     content: --modifier( --tracking-*, --blur-*, 'initial', 'hello');
   }
+}
+
+@utility card {
+  --p: calc(var(--spacing) * 3);
+  @apply p-(--p) outline outline-border/50 shadow-xs
 }
