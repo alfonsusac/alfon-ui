@@ -2,12 +2,13 @@ import { CodeBlock } from "@/lib/components/codeblock";
 import { parse } from "@babel/parser";
 import traverse, { type Node } from "@babel/traverse";
 import { readFile } from "fs/promises";
-import postcss, { type AtRule } from "postcss";
-import { Fragment, type JSX } from "react";
+import postcss from "postcss";
+import { type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 import Link from "next/link";
-import { twp, type CssVariable, type ThemedTokenType } from "@/lib/css";
-import { getGlobalCSSDependencyList, parseTailwindClass, processClassName, resolveCssVarsDependencyList, resolveCustomVariantDependencyList } from "@/lib/css-graph";
+// import { getGlobalCSSDependencyList, resolveCssVarsDependencyList, resolveCustomVariantDependencyList } from "@/lib/css-graph";
+import { roughParseClassname } from "@/lib/tw/parse-class-rough";
+import { getGlobalCSSDependencyList } from "@/lib/tw/parse-globalcss";
 
 export function generateStaticParams() {
   return [
@@ -36,30 +37,8 @@ export default async function DocsComponentsPage(props: {
 
     const globalcss = await readFile(`./src/app/globals.css`, "utf-8")
     const cssdeps = getGlobalCSSDependencyList(globalcss)
-    const resolvedCssVarsDeps = resolveCssVarsDependencyList(cssdeps.variableDeclarations)
-    const resolvedCustomVariantDeps = resolveCustomVariantDependencyList(cssdeps.atCustomVariants, resolvedCssVarsDeps.variableDeclarations)
-
-    const inputs = [
-      "hover:active:min-[123]:wow-[var(yeah)]:bg-(var(--test))/[var(--hello)]",
-      "min-[123]:[yeahyeah]/(123)",
-      "[hello-world]/[test]",
-      "[mhm]",
-    ]
-    const results: any[] = []
-
-    inputs.map(t => {
-      console.log(`\nInput: ${ t }`)
-      try {
-        const res = parseTailwindClass(t)
-        console.log(`  variants : ${ res.variants }`)
-        console.log(`  utility  : ${ res.utility }`)
-        console.log(`  modifier : ${ res.modifier }`)
-      } catch (error) {
-        console.log(String(error))
-      }
-    })
-
-    console.log('\n')
+    // const resolvedCssVarsDeps = resolveCssVarsDependencyList(cssdeps.variableDeclarations)
+    // const resolvedCustomVariantDeps = resolveCustomVariantDependencyList(cssdeps.atCustomVariants, resolvedCssVarsDeps.variableDeclarations)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
     const simpleExamples = examples?.filter(i => !i.advanced) ?? []
@@ -67,7 +46,7 @@ export default async function DocsComponentsPage(props: {
 
     return (
       <>
-        <h1 className="asdf2-hello">{name}</h1>
+        <h1>{name}</h1>
         <p>{description}</p>
 
         <div className="my-4 border border-current/10 divide-y divide-current/10">

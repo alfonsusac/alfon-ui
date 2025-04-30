@@ -40,6 +40,9 @@ body {
       transform: translateY(-1px);
     }
   } */
+   --spacing-customspacing: 200rem;
+   --container-customcontainer: 2000rem;
+   --breakpoint-mybreakpoint: 200rem;
 
 }
 
