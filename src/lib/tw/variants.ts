@@ -1,4 +1,4 @@
-import { splitModifier } from "./modifier"
+import { extractModifier } from "./modifier"
 
 const ariaVariants = ["aria-busy", "aria-checked", "aria-disabled", "aria-expanded", "aria-hidden", "aria-pressed", "aria-readonly", "aria-required", "aria-selected"]
 const defaultBreakpoints = ["sm", "md", "lg", "xl", "2xl"]
@@ -151,7 +151,7 @@ export function createVariantTree(_variant: string, root = true): Variant {
   let {
     base: variant,
     modifier,
-  } = root ? splitModifier(_variant) : { base: _variant, modifier: undefined }
+  } = root ? extractModifier(_variant) : { base: _variant, modifier: undefined }
 
 
   const nestedArbitraryVariantsUsed = nestableArbitraryVariants.map(v => v.replace(/\[\]$/, '')).filter(v => variant.startsWith(v))[0]

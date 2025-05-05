@@ -1,7 +1,8 @@
 import parseValue from 'postcss-value-parser'
+import { isCssVariable, type CssVariableString } from '../css'
 
 type Arbitrary = {
-  cssVarUsed: string[],
+  cssVarUsed: CssVariableString[],
 }
 
 export function analyzeArbitrary(arb?:
@@ -11,14 +12,14 @@ export function analyzeArbitrary(arb?:
 ): Arbitrary {
   if (!arb) return { cssVarUsed: [] }
 
-  let cssVarUsed: string[] = []
+  let cssVarUsed: CssVariableString[] = []
 
   if (arb.startsWith('[') && arb.endsWith(']')) {
     // process arbitrary
     const content = arb.slice(1, -1)
     parseValue(content).walk((node) => {
       if (node.type === 'word' && node.value.startsWith('--')) {
-        cssVarUsed.push(node.value)
+        isCssVariable(node.value) && cssVarUsed.push(node.value)
       }
     })
   }
@@ -29,7 +30,7 @@ export function analyzeArbitrary(arb?:
     const content = arb.slice(1, -1)
     parseValue(content).walk((node) => {
       if (node.type === 'word' && node.value.startsWith('--')) {
-        cssVarUsed.push(node.value)
+        isCssVariable(node.value) && cssVarUsed.push(node.value)
       }
     })
   }

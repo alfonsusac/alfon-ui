@@ -13,7 +13,7 @@ export default async function GlobalCssParserPage() {
   const parsedCss = parseTailwindCSS(defaultglobalcss + '\n' + globalcss)
   // const resolvedCssVar = resolveVariableDeclarations(parsedCss.variableDeclarations)
   // const resolbedCustomVariant = resolveCustomVariants(parsedCss.atCustomVariants, resolvedCssVar)
-  
+
   const html = await codeToHtml(JSON.stringify(parsedCss, null, 2), {
     lang: "json",
     theme: "min-light",
@@ -37,19 +37,23 @@ export default async function GlobalCssParserPage() {
         {Object.values(parsedCss.atUtilities).map((v, i) => {
           return (
             <div className="" key={i}>
-              <div className="text-sm font-semibold">{v.name}</div>
-              <div className="text-blue-700 flex flex-wrap gap-x-4 leading-4">
-                {v.themedValueTypes.length
-                  ? <>{v.themedModifierTypes.map(i => <div key={i}>{`value(${ i })`}</div>)}</>
-                  : <div className="text-blue-700/25">No Modifier Types</div>
-                }
-              </div>
-              <div className="text-blue-700 flex flex-wrap gap-x-2 leading-4">
-                {v.themedModifierTypes.length
-                  ? <>{v.themedModifierTypes.map(i => <div key={i}>{`modifier(${ i })`}</div>)}</>
-                  : <div className="text-blue-700/25">No Modifier Types</div>
-                }
-              </div>
+              <div className="text-sm font-semibold">{v.name} {v.type === "dynamic" && <span className="font-normal">(dynamic)</span>}</div>
+              {
+                v.type === "dynamic" && <>
+                  <div className="text-blue-700 flex flex-wrap gap-x-4 leading-4">
+                    {v.themedValueTypes.length
+                      ? <>{v.themedModifierTypes.map(i => <div key={i}>{`value(${ i })`}</div>)}</>
+                      : <div className="text-blue-700/25">No Modifier Types</div>
+                    }
+                  </div>
+                  <div className="text-blue-700 flex flex-wrap gap-x-2 leading-4">
+                    {v.themedModifierTypes.length
+                      ? <>{v.themedModifierTypes.map(i => <div key={i}>{`modifier(${ i })`}</div>)}</>
+                      : <div className="text-blue-700/25">No Modifier Types</div>
+                    }
+                  </div>
+                </>
+              }
               <div className="text-amber-600 flex flex-wrap gap-x-2 leading-4">
                 {v.cssVarsUsed.length
                   ? v.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
@@ -120,3 +124,4 @@ export default async function GlobalCssParserPage() {
       </div>
     </div>
   )
+}

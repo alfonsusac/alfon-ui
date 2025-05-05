@@ -1,4 +1,6 @@
-import { splitModifier } from "./modifier"
+import type { CssVariableString, ThemedTokenTypeString } from "../css"
+import { analyzeArbitrary } from "./arbitrary"
+import { extractModifier, extractModifier2 } from "./modifier"
 
 type DefaultThemedTokenTypes =
   | '--animate-*'
@@ -398,12 +400,13 @@ export type Utility2 = {
   isAbitrary?: boolean,
   isNegative?: boolean,
   valueTypes?: string[],
-  modifierTypes?: string[],
+  modifierTypes?: string[] | 'arbitrary' | 'bracketless-arbitrary',
 }
 
 export function parseUtility(utility: string) {
   const full = utility
-  let { base, modifier } = splitModifier(full)
+  let { base, getModifier } = extractModifier2(full)
+  const modifier = getModifier()
 
   const isArbitrary = base.startsWith('[') && base.endsWith(']')
   if (isArbitrary)
@@ -428,20 +431,31 @@ export function parseUtility(utility: string) {
   const found = sortedDefaultUtilities.find(key => base.startsWith(key + '-'))
   if (found) {
     const param = base.slice(found.length + 1) // Found: "bg", Param: "red-500"
-    if (param.startsWith('[') && param.endsWith(']')) 
+    const modifierType = defaultUtilities[found].filter(pt => pt.startsWith('/')).map(e => e.slice(1)) as ThemedTokenTypeString[] // modifierType: "/--color-*"
+    const modifier = getModifier(modifierType)
+
+    if (param.startsWith('[') && param.endsWith(']'))
       return {
-        full, modifier, isNegative,
+        full, isNegative, modifier,
         type: "default arbitrary utility",
         prefix: found,
         param: param as `[${ string }]`,
+        arbitrary: {
+          full: param,
+          cssVarUsed: analyzeArbitrary(param).cssVarUsed,
+        },
       } as const
-    
+
     if (param.startsWith('(') && param.endsWith(')')) {
       return {
         full, modifier, isNegative,
         type: "default arbitrary utility",
         prefix: found,
         param: param as `(${ string })`,
+        arbitrary: {
+          full: param,
+          cssVarUsed: analyzeArbitrary(param).cssVarUsed,
+        }
       } as const
     }
     // if param starts with number.
@@ -453,8 +467,7 @@ export function parseUtility(utility: string) {
         param,
       } as const
     }
-    const utilityTypes = defaultUtilities[found].filter(pt => pt.startsWith('--'))
-    // const potentialThemeTokens = utilityTypes.map(ut => `${ ut.replace('-*', '-') }${ param }`)
+    const utilityTypes = defaultUtilities[found].filter(pt => pt.startsWith('--')) as ThemedTokenTypeString[] // only pass valueTypes when paramed is found?
     if (utilityTypes.length > 0) {
       return {
         full, modifier, isNegative,

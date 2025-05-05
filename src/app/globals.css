@@ -73,6 +73,7 @@ body {
 
 @utility reset {
   all: revert;
+  @apply asdf-2xl
 }
 
 @utility asdf-*{

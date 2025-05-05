@@ -1,4 +1,6 @@
+import type { CssVariableString } from "@/lib/css";
 import type { PreparsedGlobalCSS } from "./parse-globalcss";
+import type { VariableDeclaration } from "./parse-css";
 
 export type ResolvedVariableDeclarations = {
   [key: string]: {
