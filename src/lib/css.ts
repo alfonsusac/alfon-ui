@@ -3,13 +3,13 @@ import { type FunctionNode, type Node } from 'postcss-value-parser';
 import declValueParser from 'postcss-value-parser';
 
 
-export type CssVariable = `--${ string }`
-export function isCssVariable(variable: string): variable is CssVariable {
+export type CssVariableString = `--${ string }`
+export function isCssVariable(variable: string): variable is CssVariableString {
   return variable.startsWith("--");
 }
 
-export type ThemedTokenType = `--${ string }-*`
-export function isTwTypePattern(variable: string): variable is ThemedTokenType {
+export type ThemedTokenTypeString = `--${ string }-*`
+export function isTwTypePattern(variable: string): variable is ThemedTokenTypeString {
   return variable.startsWith("--") && variable.endsWith("-*");
 }
 
@@ -18,14 +18,14 @@ export function isTwTypePattern(variable: string): variable is ThemedTokenType {
 export const twp = {
   parseDecl: declValueParser,
 
-  isCssVariable(variable: string): variable is CssVariable {
+  isCssVariable(variable: string): variable is CssVariableString {
     return variable.startsWith("--");
   },
 
   isVarFunction(
     n: Node
   ): n is FunctionNode & {
-    nodes: [Node & { value: CssVariable }];
+    nodes: [Node & { value: CssVariableString }];
   } {
     const res = n.type === "function"
       && n.value === "var"

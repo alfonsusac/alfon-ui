@@ -8,7 +8,7 @@ import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./clie
 import Link from "next/link";
 // import { getGlobalCSSDependencyList, resolveCssVarsDependencyList, resolveCustomVariantDependencyList } from "@/lib/css-graph";
 import { roughParseClassname } from "@/lib/tw/parse-class-rough";
-import { getGlobalCSSDependencyList } from "@/lib/tw/parse-globalcss";
+import { getGlobalCSSDependencyList } from "@/lib/tw/twcss/parse-globalcss";
 
 export function generateStaticParams() {
   return [

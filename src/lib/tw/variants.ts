@@ -1,3 +1,5 @@
+import { splitModifier } from "./modifier"
+
 const ariaVariants = ["aria-busy", "aria-checked", "aria-disabled", "aria-expanded", "aria-hidden", "aria-pressed", "aria-readonly", "aria-required", "aria-selected"]
 const defaultBreakpoints = ["sm", "md", "lg", "xl", "2xl"]
 const defaultContainerBreakpoints = ["3xs", "2xs", "xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl", "5xl", "6xl", "7xl"]
@@ -19,7 +21,8 @@ const notprefixprefixableVariants = [
 ] as const
 
 const uniqueVariants = [
-  "starting", "first-letter", "first-line", "marker", "selection", "file", "placeholder", "backdrop", "details-content"
+  "starting", "first-letter", "first-line", "marker", "selection", "file", "placeholder", "backdrop", "details-content",
+  "*", "**",
 ] as const
 
 const nestableArbitraryVariants = [
@@ -83,48 +86,55 @@ function getProjectResolvedTailwindVariantsFromTokens(parsedConfig: {
 }
 
 const removeTheSquareBrackets = (variant: string) => variant.replace(/\[\]/g, '')
-function getVariantModifierAndArbitrary(variant: string) {
-  // TODO: remove arbitrary feature. then rename function.
-  let index = 0;
-  let bracketStack = 0;
-  let modifierIndex = -1;
-  let firstBracketIndex = -1;
-  let done = false
-  while (variant[index] !== undefined && !done) {
-    if (variant[index] === '[') {
-      bracketStack++
-      if (firstBracketIndex < 0) firstBracketIndex = index
-    }
-    if (variant[index] === ']') {
-      bracketStack--
-    }
-    if (variant[index] === '/' && bracketStack === 0) {
-      modifierIndex = index
-      done = true
-    }
-    if (variant[index] === '\\') index++
-    index++
-  }
-  if (modifierIndex < 0) {
-    return {
-      modifier: undefined,
-      base: variant,
-    }
-  } else {
-    const modifier = variant.slice(modifierIndex + 1)
-    const variantWithoutModifier = variant.slice(0, modifierIndex)
-    return {
-      modifier,
-      base: variantWithoutModifier,
-    }
-  }
-}
+// function getVariantModifierAndArbitrary(variant: string) {
+//   // TODO: remove arbitrary feature. then rename function.
+//   let index = 0;
+//   let bracketStack = 0;
+//   let modifierIndex = -1;
+//   let firstBracketIndex = -1;
+//   let done = false
+//   while (variant[index] !== undefined && !done) {
+//     if (variant[index] === '[') {
+//       bracketStack++
+//       if (firstBracketIndex < 0) firstBracketIndex = index
+//     }
+//     if (variant[index] === ']') {
+//       bracketStack--
+//     }
+//     if (variant[index] === '/' && bracketStack === 0) {
+//       modifierIndex = index
+//       done = true
+//     }
+//     if (variant[index] === '\\') index++
+//     index++
+//   }
+//   if (modifierIndex < 0) {
+//     return {
+//       modifier: undefined,
+//       base: variant,
+//     }
+//   } else {
+//     const modifier = variant.slice(modifierIndex + 1)
+//     const variantWithoutModifier = variant.slice(0, modifierIndex)
+//     return {
+//       modifier,
+//       base: variantWithoutModifier,
+//     }
+//   }
+// }
 
 
 export type Variant = {
   full: string,
   prefix: ReturnType<typeof getDefaultTailwindVariants>[number],
-  type: "arbitrary nestable variant" | "nestable variant" | "arbitrary non-nestable variant" | "non-nestable variant" | "full arbitrary variant" | "custom variant",
+  type:
+  | "arbitrary nestable variant"
+  | "nestable variant"
+  | "arbitrary non-nestable variant"
+  | "non-nestable variant"
+  | "full arbitrary variant"
+  | "regular variant"
+  | "custom variant",
   modifier?: string,
 } & ({
   nested: true,
@@ -135,13 +145,13 @@ export type Variant = {
   isArbitrary: boolean
 })
 
-export function parseVariant(_variant: string, root = true): Variant {
+export function createVariantTree(_variant: string, root = true): Variant {
 
   const full = _variant
   let {
     base: variant,
     modifier,
-  } = root ? getVariantModifierAndArbitrary(_variant) : { base: _variant, modifier: undefined }
+  } = root ? splitModifier(_variant) : { base: _variant, modifier: undefined }
 
 
   const nestedArbitraryVariantsUsed = nestableArbitraryVariants.map(v => v.replace(/\[\]$/, '')).filter(v => variant.startsWith(v))[0]
@@ -162,7 +172,7 @@ export function parseVariant(_variant: string, root = true): Variant {
       full, modifier, prefix,
       type: "nestable variant",
       nested: true,
-      params: parseVariant(paramString, false),
+      params: createVariantTree(paramString, false),
     }
   }
 
@@ -189,132 +199,22 @@ export function parseVariant(_variant: string, root = true): Variant {
   }
 
   const isArbitrary = variant.startsWith('[') && variant.endsWith(']')
+  const isDefaultVariant = getDefaultTailwindVariants().includes(variant)
   return {
     full, modifier,
     prefix: '',
-    type: isArbitrary ? 'full arbitrary variant' : 'custom variant',
+    type: isArbitrary
+      ? 'full arbitrary variant'
+      : isDefaultVariant ? 'regular variant' : 'custom variant',
     nested: false,
     isArbitrary,
   }
+}
 
 
-
-  //   ...((getTheRest: (params: string) => Omit<Variant, "full">) => {
-  //     if (root && variant.includes('/')) {
-  //       const [params, modifier] = variant.split('/')
-  //       return { modifier: modifier, ...getTheRest(params) } as const
-  //     }
-  //     return { modifier: undefined, ...getTheRest(variant) } as const
-  //   })(params => {
-
-
-
-
-  //     const nestedArbitraryVariantsUsed = nestableArbitraryVariants.map(removeTheSquareBrackets).filter(v => variant.startsWith(v))[0]
-  //     // if (nestedArbitraryVariantsUsed) {
-  //     // even if its nested variant, an arbitrary variant can be used
-  //     return {
-  //       type: nestedArbitraryVariantsUsed,
-  //       nested: true,
-  //       params: parseVariant(params.slice(nestedArbitraryVariantsUsed.length), false),
-  //     } as const
-  //     // }
-
-  //     // return {
-  //     // type: 
-  //     // }
-  //   })
-
-  // }
-
-
-
-  // const getParamsAndModifier = () => {
-  //   if (root && variant.includes('/')) {
-  //     const [params, modifier] = variant.slice(nestedArbitraryVariantsUsed.length).split('/')
-  //     return {
-  //       params: parseVariant(params),
-  //       modifier,
-  //     } as const
-  //   }
-  //   return {
-  //     params: parseVariant(variant.slice(nestedArbitraryVariantsUsed.length)),
-  //   } as const
-  // }
-
-  // const getVariantDetails = () => {
-  //   const nestedArbitraryVariantsUsed = nestableArbitraryVariants.map(removeTheSquareBrackets).filter(v => variant.startsWith(v))[0]
-  //   if (nestedArbitraryVariantsUsed) {
-  //     return {
-  //       type: nestedArbitraryVariantsUsed,
-  //       nested: true,
-  //       ...getParamsAndModifier(),
-  //     } as const
-  //   }
-  //   const variantsUsed = nonnestableArbitraryVariants.map(removeTheSquareBrackets).filter(v => variant.startsWith(v))[0]
-  //   if (variantsUsed) {
-  //     return {
-  //       type: variantsUsed,
-  //       params: variant.slice(variantsUsed.length),
-  //       nested: false,
-  //     } as const
-  //   }
-  //   return {
-  //     type: variant,
-  //     params: variant,
-  //     nested: false,
-  //   } as const
-
-  // }
-
-
-
-  // return {
-  //   full: variant,
-  //   ...getVariantDetails(),
-  //   // type: '',
-  //   // nested: false,
-  //   // isArbitrary: false,
-  // }
-
-
-  // const nestedArbitraryVariantsUsed = nestableArbitraryVariants.map(v => v.replace(/\[\]$/, '')).filter(v => variant.startsWith(v))[0]
-
-  // if (nestedArbitraryVariantsUsed) {
-  //   const params = parseVariant(variant.slice(nestedArbitraryVariantsUsed.length))
-  //   return {
-  //     full: variant,
-  //     type: nestedArbitraryVariantsUsed,
-  //     nested: true,
-  //     params,
-  //   }
-  // } else {
-  //   const variantsUsed = nonnestableArbitraryVariants.map(v => v.replace(/\[\]$/, '')).filter(v => variant.startsWith(v))[0]
-  //   if (variantsUsed) {
-  //     return {
-  //       full: variant,
-  //       type: variantsUsed,
-  //       nested: false,
-  //       params: variant.slice(variantsUsed.length),
-  //       isArbitrary: false,
-  //     }
-  //   }
-  //   const isArbitrary = variant.startsWith('[') && variant.endsWith(']')
-  //   if (isArbitrary) {
-  //     return {
-  //       full: variant,
-  //       type: variantsUsed,
-  //       nested: false,
-  //       params: variant.slice(1, -1) || undefined,
-  //       isArbitrary,
-  //     }
-  //   }
-  //   return {
-  //     full: variant,
-  //     type: variant,
-  //     nested: false,
-  //     isArbitrary: false,
-  //   }
-
-  // }
+export function walkVariants(variant: Variant, cb: (variant: Variant) => void) {
+  cb(variant)
+  if (variant.nested) {
+    walkVariants(variant.params, cb)
+  }
 }

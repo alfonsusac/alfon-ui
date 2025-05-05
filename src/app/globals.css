@@ -43,8 +43,8 @@ body {
    --spacing-customspacing: 200rem;
    --container-customcontainer: 2000rem;
    --breakpoint-mybreakpoint: 200rem;
-
-}
+  
+} 
 
 /* @theme  {
   --color-bg: #123;
@@ -78,6 +78,7 @@ body {
 @utility asdf-*{
   content: --value( --tracking-*, --blur-*, 'initial', 'hello');
   content: --modifier( --tracking-*, --spacing-*, 'initial', 'hello');
+  @apply bg-muted bg-[var(--color-destructive)] bg-[var(--hello)] bg-(--color-destructive-border)/50 [background:var(--color-destructive-hover)/50]
 }
 
 @utility input-base {

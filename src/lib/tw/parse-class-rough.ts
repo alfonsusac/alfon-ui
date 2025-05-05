@@ -1,4 +1,3 @@
-
 export type RoughlyParsedClassname = {
   utility: string,
   variants: string[],
@@ -11,16 +10,14 @@ export function roughParseClassname(input: string) {
   let utility = '';
   let modifier: string | undefined;
 
-  function recordUtility(what: string) {
+  const recordVariant = (value: string) => variants.push(value) 
+  const recordUtility = (value: string) => {
     if (utility) throw new Error(`Utility already set: ${ utility }`)
-    utility = what
+    utility = value
   }
-  function recordVariant(what: string) {
-    variants.push(what)
-  }
-  function recordModifier(what: string) {
+  const recordModifier = (value: string) => {
     if (modifier) throw new Error(`Modifier already set: ${ modifier }`)
-    modifier = what
+    modifier = value
   }
 
   const len = input.length;
@@ -62,7 +59,6 @@ export function roughParseClassname(input: string) {
     const customProperty = input.slice(start, index)
     return customProperty // (test)
   }
-
   function processModifier(start: number) {
     let done = false
     while (hasNext() && !done) {
@@ -134,8 +130,6 @@ export function roughParseClassname(input: string) {
       }
     }
     if (next() === '/') {
-      // recordUtility(getBuffer())
-      // recordModifier(processModifier(index + 2))
       const potentialUtility = getBuffer()
       const potentialModifier = processModifier(index + 2)
       if (curr() === ':') {
@@ -160,15 +154,16 @@ export function roughParseClassname(input: string) {
     }
     index++;
   }
-
-  // console.log(`v: ${ variants } | u: ${ utility } | m: ${ modifier }`)
-
   if (utility === undefined)
     throw new Error(`Utility is required at the end. Buffer: ${ getBuffer() }`);
   return { utility, variants, modifier };
 }
 
 
+
+
+  
+  
 
 // --- Part 2 ---
 

@@ -1,38 +1,70 @@
 import postcss, { type AtRule, type Declaration } from "postcss";
 import valueParser, { type FunctionNode, type Node } from 'postcss-value-parser'
-import { isCssVariable, isTwTypePattern, type CssVariable, type ThemedTokenType } from "../css";
+import { isCssVariable, isTwTypePattern, type CssVariableString, type ThemedTokenTypeString } from "../../css";
+
+export type PreparsedGlobalCSS = {
+  variableDeclarations: Record<CssVariableString, {
+    value: string,
+    cssVarsUsed: CssVariableString[]
+  }>
+  atUtilities: Record<string, {
+    customThemedTokenTypesValue: ThemedTokenTypeString[],
+    customThemedTokenTypesModifier: ThemedTokenTypeString[],
+    classNamesUsed: string[],
+    variantsUsed: string[],
+    cssVarsUsed: CssVariableString[]
+  }>
+  atCustomVariants: Record<string, {
+    value?: string,
+    cssVarsUsed: CssVariableString[]
+  }>
+}
+
 
 // Caveat/Assumptions:
 // - no toplevel CSS rules. must use utility classes
 
-export function getGlobalCSSDependencyList(globalCss: string) {
+export function 
+getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
   const parsedCss = postcss.parse(globalCss)
-  const variableDeclarations = new Map<CssVariable, {
+  const variableDeclarations = new Map<CssVariableString, {
     value: string,
-    cssVarsUsed: CssVariable[]
+    cssVarsUsed: CssVariableString[]
   }>()
   const atUtilities = new Map<string, {
     // node: AtRule,
-    customThemedTokenTypesValue: ThemedTokenType[],
-    customThemedTokenTypesModifier: ThemedTokenType[],
+    customThemedTokenTypesValue: ThemedTokenTypeString[],
+    customThemedTokenTypesModifier: ThemedTokenTypeString[],
     classNamesUsed: string[],
     variantsUsed: string[],
-    cssVarsUsed: CssVariable[]
-  }>
+    cssVarsUsed: CssVariableString[]
+  }>()
   const atCustomVariants = new Map<string, {
     // node: AtRule,
     value?: string,
-    cssVarsUsed: CssVariable[]
+    cssVarsUsed: CssVariableString[]
   }>()
 
-  function processVariablesUsedInParsedValueNode(n: Node, cssVarsUsed: Set<CssVariable>) {
+
+  parsedCss.walk(n => {
+    n.type === 'atrule' && n.name === 'theme' && processAtTheme(n)
+    n.type === 'atrule' && n.name === 'utility' && processAtUtility(n)
+    n.type === 'atrule' && n.name === 'custom-variant' && processAtCustomVariant(n)
+  })
+
+  function processVariablesUsedInParsedValueNode(n: Node, cssVarsUsed: Set<CssVariableString>) {
     if (n.type !== 'function' || n.value !== 'var' || n.nodes[0].type !== 'word') return
+    console.log(`${n.type} \t ${n.value} \t ${n.nodes[0].type} \t ${n.nodes[0].value} \t ${isCssVariable(n.nodes[0].value)}`)
     const argument = n.nodes[0]
     if (isCssVariable(argument.value)) cssVarsUsed.add(argument.value)
     else console.warn(`CSS Variable must start with '--'. Found: ${ argument.value }`)
   }
+
+
+  // --- Get Variable Declarations from @theme --------------------------
+
   function processAtThemeVariableDeclaration(d: Declaration) {
-    const cssVarsUsed = new Set<CssVariable>()
+    const cssVarsUsed = new Set<CssVariableString>()
     valueParser(d.value).walk(n => { processVariablesUsedInParsedValueNode(n, cssVarsUsed) })
     if (isCssVariable(d.prop))
       variableDeclarations.set(d.prop, {
@@ -46,17 +78,26 @@ export function getGlobalCSSDependencyList(globalCss: string) {
   function processAtApply(d: AtRule, classNamesUsed: Set<string>) {
     d.params.split(/\s+/).forEach(c => classNamesUsed.add(c))
   }
+  // ------------------------------------------------------------------
+
+
+
+
+
   function processAtVariant(d: AtRule, variantsUsed: Set<string>) {
     variantsUsed.add(d.params)
   }
+
+  // --- Get Custom Variants from @custom-variants --------------------------
+
   function processAtUtility(atrule: AtRule) {
-    const cssVarsUsed = new Set<CssVariable>()
+    const cssVarsUsed = new Set<CssVariableString>()
     const classNamesUsed = new Set<string>()
     const variantsUsed = new Set<string>()
-    const customThemedTokenTypesValue = new Set<ThemedTokenType>()
-    const customThemedTokenTypesModifier = new Set<ThemedTokenType>()
+    const customThemedTokenTypesValue = new Set<ThemedTokenTypeString>()
+    const customThemedTokenTypesModifier = new Set<ThemedTokenTypeString>()
 
-    function processCustomThemedTokenTypesUsed(n: FunctionNode, customThemedTokenTypes: Set<ThemedTokenType>) {
+    function processCustomThemedTokenTypesUsed(n: FunctionNode, customThemedTokenTypes: Set<ThemedTokenTypeString>) {
       n.nodes
         .filter(a => a.type === "word")
         .flatMap(a => isTwTypePattern(a.value) ? [a.value] : [])
@@ -86,8 +127,15 @@ export function getGlobalCSSDependencyList(globalCss: string) {
       customThemedTokenTypesModifier: [...customThemedTokenTypesModifier]
     })
   }
+  // ------------------------------------------------------------------
+
+
+
+
+  // --- Get Custom Variants from @custom-variants --------------------------
+
   function processAtCustomVariant(atrule: AtRule) {
-    const cssVarsUsed = new Set<CssVariable>()
+    const cssVarsUsed = new Set<CssVariableString>()
     atrule.walk(d => {
       d.type === 'decl' && valueParser(d.value).walk(v => processVariablesUsedInParsedValueNode(v, cssVarsUsed))
     })
@@ -97,14 +145,8 @@ export function getGlobalCSSDependencyList(globalCss: string) {
       cssVarsUsed: [...cssVarsUsed],
     })
   }
-  parsedCss.walk(n => {
-    n.type === 'atrule' && n.name === 'theme' && processAtTheme(n)
-    n.type === 'atrule' && n.name === 'utility' && processAtUtility(n)
-    n.type === 'atrule' && n.name === 'custom-variant' && processAtCustomVariant(n)
-    // n.type === 'rule' && processRule(n) [no need to read rules: all class must use utility]
-  })
+  // ------------------------------------------------------------------
 
-  // -- Resolve Global CSS Dependency List
 
   return {
     variableDeclarations: Object.fromEntries(variableDeclarations),
