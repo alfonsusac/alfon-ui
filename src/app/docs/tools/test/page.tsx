@@ -6,7 +6,6 @@ export default function TestPage() {
 
   console.log(JSON.stringify(res, null, 2))
 
-
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">Test Page</h1>

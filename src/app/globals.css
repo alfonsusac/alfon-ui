@@ -71,6 +71,10 @@ body {
   }
 } */
 
+@utility test2 {
+  @apply bg-(--a);
+}
+
 @utility reset {
   all: revert;
   @apply asdf-2xl

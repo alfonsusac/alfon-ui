@@ -124,7 +124,7 @@ export function ClassNameParserClient() {
                                     return <SmallPill key={tt} className="last:mb-1">{tt}</SmallPill>
                                   })} */}
                                 </div>}
-                                {utility.modifier && <div className="p-0.5 px-2 outline outline-border">{utility.modifier}</div>}
+                                {utility.modifier && <div className="p-0.5 px-2 outline outline-border">{utility.modifier.full}</div>}
                                 {parsed.res.parsed.modifier && <div className="p-0.5 px-2 outline outline-border">
                                   <span className="opacity-50">/</span>
                                   {parsed.res.parsed.modifier}
@@ -248,7 +248,7 @@ function VariantDetailPill(props: {
             /
           </span>
           <span className="tracking-tighter">
-            {props.variant.modifier}
+            {props.variant.modifier.full}
           </span>
         </span>
       }

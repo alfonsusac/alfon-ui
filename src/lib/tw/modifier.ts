@@ -23,12 +23,8 @@ export function extractModifier(input: string) {
     index++
   }
 
-  if (modifierIndex < 0) {
-    return {
-      modifier: undefined,
-      base: input,
-    }
-  }
+  if (modifierIndex < 0)
+    return { modifier: undefined, base: input }
 
   const modifier = (() => {
     const full = input.slice(modifierIndex + 1)
@@ -48,18 +44,13 @@ export function extractModifier(input: string) {
         full,
         type: "defined" as const,
         resolve(themedTokens: ThemedTokenTypeString[]) {
-          return {
-            cssVarUsed: themedTokens.map(t => `${ t.split('*')[0] + full }`),
-          }
+          return { cssVarUsed: themedTokens.map(t => `${ t.split('*')[0] + full }`) }
         }
       }
     }
   })()
 
-  return {
-    modifier,
-    base: input.slice(0, modifierIndex),
-  }
+  return { modifier, base: input.slice(0, modifierIndex) }
 }
 
 
@@ -106,41 +97,8 @@ export function extractModifier2(input: string) {
       return {
         full,
         type: isArbitrary ? "arbitrary" as const : "defined" as const,
-        cssVarUsed: (isArbitrary ? analyzeArbitrary(full).cssVarUsed : themedTokens?.map(t => `${ t.split('*')[0] + full }` as CssVarString) )?? [],
+        cssVarUsed: (isArbitrary ? analyzeArbitrary(full).cssVarUsed : themedTokens?.map(t => `${ t.split('*')[0] + full }` as CssVarString)) ?? [],
       }
     }
-    // getModifier: <T extends ThemedTokenTypeString[] | undefined>(themedTokens?: T) => {
-    //   const modifier = (() => {
-    //     const full = input.slice(modifierIndex + 1)
-    //     const isArbitrary = (
-    //       (full.startsWith('[') && full.startsWith(']')) ||
-    //       (full.startsWith('(') && full.startsWith(')'))
-    //     ) ? true : false
-    //     if (isArbitrary) {
-    //       const arbitrary = analyzeArbitrary(full)
-    //       return {
-    //         full,
-    //         type: "arbitrary" as const,
-    //         cssVarUsed: arbitrary.cssVarUsed,
-    //       }
-    //     } else {
-    //       return {
-    //         full,
-    //         type: "defined" as const,
-    //         cssVarUsed: (themedTokens?.map(t => `${ t.split('*')[0] + full }`) ?? undefined),
-    //       } as T extends undefined ? {
-    //         full: string,
-    //         type: "defined",
-    //       } : {
-    //         full: string,
-    //         type: "defined",
-    //         cssVarUsed: CssVariableString[],
-    //       }
-    //     }
-    //   })()
-
-    //   return modifier
-    // }
   }
-  // return 
 }

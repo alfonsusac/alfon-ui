@@ -354,37 +354,6 @@ export type Utility3 = {
   full: string,
 }
 
-// export type Utility = {
-//   full: string,
-//   prefix: string,
-//   isNegative?: boolean,
-// } & ({
-//   type: "full arbitrary utility",
-//   modifier?: string,
-// } | {
-//   type: "default defined param utility",
-//   param: string,
-//   valueTypes?: string[],
-//   modifier?: string,
-//   modifierTypes?: string[],
-// } | {
-//   type: "default arbitrary utility",
-//   param: `[${ string }]` | `(${ string })`,
-//   valueTypes?: string[],
-//   modifier?: string,
-//   modifierTypes?: string[],
-// } | {
-//   type: "default bracketless arbitrary utility",
-//   param: string,
-//   modifier?: string,
-//   modifierTypes?: string[],
-// } | {
-//   type: "default utility",
-// } | {
-//   type: "custom utility",
-//   modifier?: string,
-// })
-
 export type Utility2 = {
   full: string,
   type:

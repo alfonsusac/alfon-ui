@@ -1,4 +1,4 @@
-import { extractModifier } from "./modifier"
+import { extractModifier, type Modifier } from "./modifier"
 
 const ariaVariants = ["aria-busy", "aria-checked", "aria-disabled", "aria-expanded", "aria-hidden", "aria-pressed", "aria-readonly", "aria-required", "aria-selected"]
 const defaultBreakpoints = ["sm", "md", "lg", "xl", "2xl"]
@@ -135,7 +135,7 @@ export type Variant = {
   | "full arbitrary variant"
   | "regular variant"
   | "custom variant",
-  modifier?: string,
+  modifier?: Modifier,
 } & ({
   nested: true,
   params: Variant,

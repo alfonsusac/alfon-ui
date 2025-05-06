@@ -160,14 +160,3 @@ export function roughParseClassname(input: string) {
 }
 
 
-
-
-  
-  
-
-// --- Part 2 ---
-
-export function parseClassname(cn: RoughlyParsedClassname) {
-
-}
-

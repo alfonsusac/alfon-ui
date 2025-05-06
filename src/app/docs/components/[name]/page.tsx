@@ -6,9 +6,6 @@ import postcss from "postcss";
 import { type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 import Link from "next/link";
-// import { getGlobalCSSDependencyList, resolveCssVarsDependencyList, resolveCustomVariantDependencyList } from "@/lib/css-graph";
-import { roughParseClassname } from "@/lib/tw/parse-class-rough";
-import { getGlobalCSSDependencyList } from "@/lib/tw/twcss/parse-globalcss";
 
 export function generateStaticParams() {
   return [
@@ -30,15 +27,7 @@ export default async function DocsComponentsPage(props: {
 
     const dependencies = getDependencies(sourceCode)
     const classNamesTokenUsedMap = await getClassNamesTokensUsedSet(sourceCode)
-    // const customUtilityUsed = await getUtilityUsedSourceCode(ComponentSource['utilityUsed'] ?? undefined) ?? []
-    // const tokensUsedInUtility = getTokensUsedInUtilitySourceCode(customUtilityUsed?.map(c => c.content).join('\n'))
-    // const customTokensUsed = await getCustomTokensUsed(new Set([...classNamesTokenUsedMap ?? [], ...tokensUsedInUtility ?? []])) ?? []
-    // const globalCSS = constructGlobalCss(customTokensUsed, customUtilityUsed)
-
     const globalcss = await readFile(`./src/app/globals.css`, "utf-8")
-    const cssdeps = getGlobalCSSDependencyList(globalcss)
-    // const resolvedCssVarsDeps = resolveCssVarsDependencyList(cssdeps.variableDeclarations)
-    // const resolvedCustomVariantDeps = resolveCustomVariantDependencyList(cssdeps.atCustomVariants, resolvedCssVarsDeps.variableDeclarations)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
     const simpleExamples = examples?.filter(i => !i.advanced) ?? []

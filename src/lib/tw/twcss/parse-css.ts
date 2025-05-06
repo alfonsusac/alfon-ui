@@ -1,6 +1,5 @@
 import {
   isCssVariable,
-  isTwTypePattern,
   type CssVarString,
 } from "@/lib/css"
 import postcss, { type AtRule } from "postcss"
