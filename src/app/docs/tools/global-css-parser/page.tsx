@@ -1,9 +1,6 @@
 // import { resolveCustomVariants } from "@/lib/tw/resolve-dependencies";
 import { parseTailwindCSS } from "@/lib/tw/twcss/parse-css";
-import { getGlobalCSSDependencyList } from "@/lib/tw/twcss/parse-globalcss";
-import { resolveVariableDeclarations } from "@/lib/tw/twcss/resolve-var";
 import { readFile } from "fs/promises";
-import { Fragment } from "react";
 import { codeToHtml } from "shiki";
 
 export default async function GlobalCssParserPage() {
@@ -11,8 +8,6 @@ export default async function GlobalCssParserPage() {
   const defaultglobalcss = await readFile('./node_modules/tailwindcss/theme.css', 'utf-8')
   const globalcss = await readFile('./src/app/globals.css', 'utf-8')
   const parsedCss = parseTailwindCSS(defaultglobalcss + '\n' + globalcss)
-  // const resolvedCssVar = resolveVariableDeclarations(parsedCss.variableDeclarations)
-  // const resolbedCustomVariant = resolveCustomVariants(parsedCss.atCustomVariants, resolvedCssVar)
 
   const html = await codeToHtml(JSON.stringify(parsedCss, null, 2), {
     lang: "json",
@@ -25,13 +20,6 @@ export default async function GlobalCssParserPage() {
         <h1>Tailwind Global CSS Parser</h1>
       </header>
 
-      <h2 className="text-2xl!">Resolved</h2>
-      <h3 className="mt-8! mb-4!">Variable Declarations</h3>
-
-
-
-      <h2 className="text-2xl!">Raw</h2>
-
       <h3 className="mt-8! mb-4!">Custom Utilities</h3>
       <div className="flex flex-col card p-6 gap-5 leading-3 text-nowrap overflow-auto  text-[0.8em]">
         {Object.values(parsedCss.atUtilities).map((v, i) => {
@@ -41,33 +29,38 @@ export default async function GlobalCssParserPage() {
               {
                 v.type === "dynamic" && <>
                   <div className="text-blue-700 flex flex-wrap gap-x-4 leading-4">
-                    {v.themedValueTypes.length
-                      ? <>{v.themedModifierTypes.map(i => <div key={i}>{`value(${ i })`}</div>)}</>
+                    {Object.keys(v.themedValueParams).length
+                      ? <>{Object.keys(v.themedValueParams).map(i => <div key={i}>{`value(${ i })`}</div>)}</>
                       : <div className="text-blue-700/25">No Modifier Types</div>
                     }
                   </div>
                   <div className="text-blue-700 flex flex-wrap gap-x-2 leading-4">
-                    {v.themedModifierTypes.length
-                      ? <>{v.themedModifierTypes.map(i => <div key={i}>{`modifier(${ i })`}</div>)}</>
+                    {Object.keys(v.themedModifierParams).length
+                      ? <>{Object.keys(v.themedModifierParams).map(i => <div key={i}>{`modifier(${ i })`}</div>)}</>
                       : <div className="text-blue-700/25">No Modifier Types</div>
                     }
                   </div>
                 </>
               }
               <div className="text-amber-600 flex flex-wrap gap-x-2 leading-4">
-                {v.cssVarsUsed.length
-                  ? v.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
+                {v.meta.cssVarsUsed.length
+                  ? v.meta.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
                   : <div className="text-amber-600/25">No CSS Variables</div>}
               </div>
               <div className="text-green-700 flex flex-wrap gap-x-2 leading-4">
-                {v.classNamesUsed.length
-                  ? v.classNamesUsed.map(i => <div key={i}>{`${ i }`}</div>)
+                {v.meta.classNamesUsed.length
+                  ? v.meta.classNamesUsed.map(i => <div key={i}>{`${ i }`}</div>)
                   : <div className="text-green-700/25">No Class Names</div>
                 }
               </div>
               <div className="text-amber-600/75 flex flex-wrap gap-x-2 leading-4 pl-4">
                 {v.allCssVarsUsed.length
                   ? v.allCssVarsUsed.map(i => <div key={i}>var({i})</div>)
+                  : null}
+              </div>
+              <div className="text-indigo-600/75 flex flex-wrap gap-x-2 leading-4 pl-4">
+                {v.customUtilityUsed.length
+                  ? v.customUtilityUsed.map((i, index) => <div key={index}>{i.name}</div>)
                   : null}
               </div>
             </div>
@@ -82,8 +75,8 @@ export default async function GlobalCssParserPage() {
             <div className="mb-2" key={i}>
               <div className="text-sm font-semibold">{v.name}</div>
               <div className="text-amber-600 flex flex-wrap gap-x-2 leading-4">
-                {v.cssVarsUsed.length
-                  ? v.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
+                {v.meta.cssVarsUsed.length
+                  ? v.meta.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
                   : <div className="text-gray-400">No CSS Variables</div>}
               </div>
               <div className="text-amber-600/50 flex flex-wrap gap-x-2 leading-4 pl-4">
@@ -103,8 +96,8 @@ export default async function GlobalCssParserPage() {
             <div className="mb-2" key={i}>
               <div className="text-sm font-semibold">{v.name}<span className="font-normal">: {v.value}</span></div>
               <div className="text-amber-600 flex flex-wrap gap-x-2 leading-4">
-                {v.cssVarsUsed.length
-                  ? v.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
+                {v.meta.cssVarsUsed.length
+                  ? v.meta.cssVarsUsed.map(i => <div key={i}>var({i})</div>)
                   : <div className="text-gray-400">No CSS Variables</div>}
               </div>
               <div className="text-amber-600/50 flex flex-wrap gap-x-2 pl-4 leading-4">

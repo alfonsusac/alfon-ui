@@ -76,10 +76,15 @@ body {
   @apply asdf-2xl
 }
 
-@utility asdf-*{
+@utility util1-* {
+  @apply asdf-2xl;
+}
+
+@utility asdf-* {
   content: --value( --tracking-*, --blur-*, 'initial', 'hello');
   content: --modifier( --tracking-*, --spacing-*, 'initial', 'hello');
-  @apply bg-muted bg-[var(--color-destructive)] bg-[var(--hello)] bg-(--color-destructive-border)/50 [background:var(--color-destructive-hover)/50]
+  @apply bg-muted bg-[var(--color-destructive)] bg-[var(--hello)] bg-(--color-destructive-border)/50 [background:var(--color-destructive-hover)/50];
+  @apply input-base;
 }
 
 @utility input-base {

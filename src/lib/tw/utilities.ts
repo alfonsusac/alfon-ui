@@ -1,4 +1,4 @@
-import type { CssVariableString, ThemedTokenTypeString } from "../css"
+import type { CssVarString, ThemedTokenTypeString } from "../css"
 import { analyzeArbitrary } from "./arbitrary"
 import { extractModifier, extractModifier2 } from "./modifier"
 
@@ -415,8 +415,11 @@ export function parseUtility(utility: string) {
       type: "full arbitrary utility",
       prefix: base,
       isNegative: false,
+      arbitrary: {
+        full,
+        cssVarUsed: analyzeArbitrary(full).cssVarUsed,
+      },
     } as const
-
 
   // check isnegative when actual default utility is found
   const isNegative = base.startsWith('-')
@@ -483,18 +486,68 @@ export function parseUtility(utility: string) {
       prefix: found,
     } as const
   }
+
+  const staticUtilFound = sortedDefaultUtilities.filter(u => (defaultUtilities as DefaultUtility)[u].includes('static')).find(key => base.startsWith(key))
+  if (staticUtilFound) {
+    return {
+      full, isNegative,
+      type: "default utility",
+      prefix: found,
+    } as const
+  }
   return {
     full, modifier,
     type: "custom utility",
     prefix: base,
-    resolve(atUtilityName: string) {
-      return {
-        full, modifier,
-        type: "custom utility",
-        prefix: atUtilityName,
-        param: base.slice(atUtilityName.length + 1),
-      }
-    }
   } as const
 }
 
+
+export type UnresolvedCustomUtilityUsed = NonNullable<ReturnType<typeof parseUtility>> extends infer A
+  ? A extends { type: "custom utility" }
+  ? A
+  : never
+  : never
+
+export type UtilityUsed = NonNullable<ReturnType<typeof parseUtility>>
+
+
+
+
+export function parseUtilityWithKnownUtilities(utility: string, utilityName: string) {
+  const full = utility
+  let { base, getModifier } = extractModifier2(full)
+  const modifier = getModifier()
+  const type = utilityName.includes('-*') ? 'dynamic' as const : 'static' as const
+  if (type === "static") {
+    const prefix = utilityName
+    return {
+      full, modifier,
+      type: "custom static utility",
+      prefix,
+      // param,
+    } as const
+  }
+  else { // type === "dynamic"
+    const prefix = utilityName.split('-*')[0]
+    const param = base.slice(prefix.length + 1)
+    if ((param.startsWith('[') && param.endsWith(']')) || (param.startsWith('(') && param.endsWith(')'))) {
+      return {
+        full, modifier,
+        type: "custom dynamic arbitrary utility",
+        prefix,
+        param,
+        arbitrary: {
+          full: param,
+          cssVarUsed: analyzeArbitrary(param).cssVarUsed,
+        },
+      } as const
+    }
+    return {
+      full, modifier,
+      type: "custom dynamic utility",
+      prefix,
+      param,
+    } as const
+  }
+}

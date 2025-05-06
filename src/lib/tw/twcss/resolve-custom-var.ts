@@ -1,4 +1,4 @@
-import type { CssVariableString } from "@/lib/css";
+import type { CssVarString } from "@/lib/css";
 import type { AtCustomVariant } from "./parse-css";
 import type { PreparsedGlobalCSS } from "./parse-globalcss";
 import type { ResolvedVariableDeclarations } from "./resolve-var";

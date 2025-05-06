@@ -1,10 +1,10 @@
 import valueParser from 'postcss-value-parser'
-import { isCssVariable, type CssVariableString } from './css'
+import { isCssVariable, type CssVarString } from './css'
 import postcss from 'postcss'
 
 export function parseDeclarationValue(str: string) {
   const parsed = valueParser(str)
-  const walkVariables = (cb: (v: CssVariableString, err: string | null) => void) => {
+  const walkVariables = (cb: (v: CssVarString, err: string | null) => void) => {
     parsed.walk((node) => {
       if (node.type === 'function' && node.value === 'var') {
         const variable = node.nodes[0]?.value
@@ -17,17 +17,3 @@ export function parseDeclarationValue(str: string) {
     walkVariables,
   }
 }
-
-// export function parseCss(str: string) {
-//   const parsed = postcss.parse(str)
-//   const walkAtThemeRule = () {
-//       const atThemeRules = new Set<string>()
-//       parsed.walkAtRules('theme', (rule) => {
-//         atThemeRules.add(rule.params)
-//       })
-//       return [...atThemeRules]
-//   }
-//   return {
-//     ...parsed,
-//   }
-// }

@@ -1,8 +1,8 @@
 import parseValue from 'postcss-value-parser'
-import { isCssVariable, type CssVariableString } from '../css'
+import { isCssVariable, type CssVarString } from '../css'
 
 type Arbitrary = {
-  cssVarUsed: CssVariableString[],
+  cssVarUsed: CssVarString[],
 }
 
 export function analyzeArbitrary(arb?:
@@ -12,7 +12,7 @@ export function analyzeArbitrary(arb?:
 ): Arbitrary {
   if (!arb) return { cssVarUsed: [] }
 
-  let cssVarUsed: CssVariableString[] = []
+  let cssVarUsed: CssVarString[] = []
 
   if (arb.startsWith('[') && arb.endsWith(']')) {
     // process arbitrary

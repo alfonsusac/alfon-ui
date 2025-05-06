@@ -1,22 +1,22 @@
 import postcss, { type AtRule, type Declaration } from "postcss";
 import valueParser, { type FunctionNode, type Node } from 'postcss-value-parser'
-import { isCssVariable, isTwTypePattern, type CssVariableString, type ThemedTokenTypeString } from "../../css";
+import { isCssVariable, isTwTypePattern, type CssVarString, type ThemedTokenTypeString } from "../../css";
 
 export type PreparsedGlobalCSS = {
-  variableDeclarations: Record<CssVariableString, {
+  variableDeclarations: Record<CssVarString, {
     value: string,
-    cssVarsUsed: CssVariableString[]
+    cssVarsUsed: CssVarString[]
   }>
   atUtilities: Record<string, {
     customThemedTokenTypesValue: ThemedTokenTypeString[],
     customThemedTokenTypesModifier: ThemedTokenTypeString[],
     classNamesUsed: string[],
     variantsUsed: string[],
-    cssVarsUsed: CssVariableString[]
+    cssVarsUsed: CssVarString[]
   }>
   atCustomVariants: Record<string, {
     value?: string,
-    cssVarsUsed: CssVariableString[]
+    cssVarsUsed: CssVarString[]
   }>
 }
 
@@ -27,9 +27,9 @@ export type PreparsedGlobalCSS = {
 export function 
 getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
   const parsedCss = postcss.parse(globalCss)
-  const variableDeclarations = new Map<CssVariableString, {
+  const variableDeclarations = new Map<CssVarString, {
     value: string,
-    cssVarsUsed: CssVariableString[]
+    cssVarsUsed: CssVarString[]
   }>()
   const atUtilities = new Map<string, {
     // node: AtRule,
@@ -37,12 +37,12 @@ getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
     customThemedTokenTypesModifier: ThemedTokenTypeString[],
     classNamesUsed: string[],
     variantsUsed: string[],
-    cssVarsUsed: CssVariableString[]
+    cssVarsUsed: CssVarString[]
   }>()
   const atCustomVariants = new Map<string, {
     // node: AtRule,
     value?: string,
-    cssVarsUsed: CssVariableString[]
+    cssVarsUsed: CssVarString[]
   }>()
 
 
@@ -52,7 +52,7 @@ getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
     n.type === 'atrule' && n.name === 'custom-variant' && processAtCustomVariant(n)
   })
 
-  function processVariablesUsedInParsedValueNode(n: Node, cssVarsUsed: Set<CssVariableString>) {
+  function processVariablesUsedInParsedValueNode(n: Node, cssVarsUsed: Set<CssVarString>) {
     if (n.type !== 'function' || n.value !== 'var' || n.nodes[0].type !== 'word') return
     console.log(`${n.type} \t ${n.value} \t ${n.nodes[0].type} \t ${n.nodes[0].value} \t ${isCssVariable(n.nodes[0].value)}`)
     const argument = n.nodes[0]
@@ -64,7 +64,7 @@ getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
   // --- Get Variable Declarations from @theme --------------------------
 
   function processAtThemeVariableDeclaration(d: Declaration) {
-    const cssVarsUsed = new Set<CssVariableString>()
+    const cssVarsUsed = new Set<CssVarString>()
     valueParser(d.value).walk(n => { processVariablesUsedInParsedValueNode(n, cssVarsUsed) })
     if (isCssVariable(d.prop))
       variableDeclarations.set(d.prop, {
@@ -91,7 +91,7 @@ getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
   // --- Get Custom Variants from @custom-variants --------------------------
 
   function processAtUtility(atrule: AtRule) {
-    const cssVarsUsed = new Set<CssVariableString>()
+    const cssVarsUsed = new Set<CssVarString>()
     const classNamesUsed = new Set<string>()
     const variantsUsed = new Set<string>()
     const customThemedTokenTypesValue = new Set<ThemedTokenTypeString>()
@@ -135,7 +135,7 @@ getGlobalCSSDependencyList(globalCss: string): PreparsedGlobalCSS {
   // --- Get Custom Variants from @custom-variants --------------------------
 
   function processAtCustomVariant(atrule: AtRule) {
-    const cssVarsUsed = new Set<CssVariableString>()
+    const cssVarsUsed = new Set<CssVarString>()
     atrule.walk(d => {
       d.type === 'decl' && valueParser(d.value).walk(v => processVariablesUsedInParsedValueNode(v, cssVarsUsed))
     })

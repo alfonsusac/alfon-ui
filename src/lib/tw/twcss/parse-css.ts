@@ -1,29 +1,35 @@
 import {
   isCssVariable,
   isTwTypePattern,
-  type CssVariableString,
+  type CssVarString,
 } from "@/lib/css"
 import postcss, { type AtRule } from "postcss"
 import valueParser, { type Node } from "postcss-value-parser"
 import { roughParseClassname } from "../parse-class-rough"
 import { createVariantTree, walkVariants } from "../variants"
-import { parseUtility } from "../utilities"
+import { parseUtility, parseUtilityWithKnownUtilities, type UnresolvedCustomUtilityUsed, type UtilityUsed } from "../utilities"
 import { analyzeArbitrary } from "../arbitrary"
-import type { Modifier } from "../modifier"
+import { extractUtilityThemeTypes, extractVars } from "./parse-value"
 
-export type VariableDeclaration = {
-  name: CssVariableString
-  value: string
-  cssVarsUsed: readonly CssVariableString[]
+export type CssVar = {
+  name: CssVarString
+  value: string,
+  meta: {
+    cssVarsUsed: readonly CssVarString[]
+  }
 }
 export type AtCustomVariant = {
   name: string
-  cssVarsUsed: readonly CssVariableString[]
+  meta: {
+    cssVarsUsed: readonly CssVarString[]
+  }
 }
 export type AtUtility = {
-  classNamesUsed: readonly string[]
-  cssVarsUsed: readonly CssVariableString[]
-  variantsUsed: readonly string[]
+  meta: {
+    classNamesUsed: readonly string[]
+    cssVarsUsed: readonly CssVarString[]
+    variantsUsed: readonly string[]
+  }
 } & ({
   name: string,
   type: "static"
@@ -35,20 +41,11 @@ export type AtUtility = {
 })
 
 
-
-export type ParsedTailwindCSS = {
-  variableDeclarations: Record<CssVariableString, VariableDeclaration>
-  atUtilities: Record<string, AtUtility>
-  atCustomVariants: Record<string, AtCustomVariant>
-}
-
-
-
 export function parseTailwindCSS(css: string) {
   const parsedCss = postcss.parse(css)
 
-  // 1 - parse all @theme, @utility, @custom-variant
-  const variables = new Map<CssVariableString, VariableDeclaration>()
+  // Phase 1 - parse all @theme, @utility, @custom-variant
+  const variables = new Map<CssVarString, CssVar>()
   const atUtilities = new Map<string, AtUtility>()
   const atCustomVariants = new Map<string, AtCustomVariant>()
   parsedCss.walk((n) => {
@@ -57,59 +54,72 @@ export function parseTailwindCSS(css: string) {
     n.type === "atrule" && n.name === "utility" && processAtUtilities(n, atUtilities)
   })
 
-  type Resolved<T extends object> = T & { allCssVarsUsed: readonly CssVariableString[] }
-  const resolvedVariables = new Map<string, Resolved<VariableDeclaration>>()
-  const resolvedAtCustomVariants = new Map<string, Resolved<AtCustomVariant>>()
-  const resolvedAtUtilities = new Map<string, Resolved<AtUtility> & {
-    themedValueParams: Record<string, { resolvedVariableDeclarations: Resolved<VariableDeclaration>[] }>
-    themedModifierParams: Record<string, { resolvedVariableDeclarations: Resolved<VariableDeclaration>[] }>
-    atUtilitiesUsed: { utility: string; params?: string; modifier?: Modifier }[]
-  }>()
+  type Resolved<T extends object> = T & {
+    /** All CSS Vars Used in T including itself */
+    allCssVarsUsed: readonly CssVarString[]
+  }
+  type ResolvedVariableDeclaration = Resolved<CssVar>
+  type ResolvedAtCustomVariant = Resolved<AtCustomVariant>
 
-  // const getAllCssVarsUsed = (node: { allCssVarsUsed: readonly CssVariableString[] }, forEach: () => ) => { }
+  type ResolvedAtUtilityThemedValueParams = { resolvedVariableDeclarations: ResolvedVariableDeclaration[] }
+  type ResolvedAtUtilityThemedModifierParams = { resolvedVariableDeclarations: ResolvedVariableDeclaration[] }
+  type ResolvedValueParamTokenUsed = { tokensUsed: ResolvedVariableDeclaration[], allCssVarsUsed: readonly CssVarString[] }
+  type IntermediaryAtUtility = Resolved<AtUtility> & {
+    themedValueParams: Record<string, ResolvedAtUtilityThemedValueParams>
+    valueParamsLookup: Record<string, ResolvedValueParamTokenUsed>
+    themedModifierParams: Record<string, ResolvedAtUtilityThemedModifierParams>
+    customUtilityUsed: UnresolvedCustomUtilityUsed[],
+    customVariantsUsed: AtCustomVariant[],
+  }
 
-  // 2 - resolve all css variables used in each variable
+  const resolvedVariables = new Map<string, ResolvedVariableDeclaration>()
+  const resolvedAtCustomVariants = new Map<string, ResolvedAtCustomVariant>()
+  const intermediaryAtUtilities = new Map<string, IntermediaryAtUtility>()
+
+  // Phase 2 - resolve all css variables used in each variable
   // resolve css variabls
   variables.forEach((val, key) => {
-    const cssVarUsed = new Set<CssVariableString>()
-    const stack = [...val.cssVarsUsed]
+    const cssVarUsed = new Set<CssVarString>()
+    const stack = [key]
     while (stack.length) {
       const cssVar = stack.pop()!
       cssVarUsed.add(cssVar)
-      variables.get(cssVar)?.cssVarsUsed.forEach(v => cssVarUsed.has(v) && stack.push(v))
+      variables.get(cssVar)?.meta.cssVarsUsed.forEach(v => !cssVarUsed.has(v) && stack.push(v))
     }
     resolvedVariables.set(key, { ...val, allCssVarsUsed: [...cssVarUsed] })
   })
 
   // resolve custom variants
   atCustomVariants.forEach((val, key) => {
-    const cssVarUsed = new Set<CssVariableString>()
-    val.cssVarsUsed.forEach((v) => {
+    const cssVarUsed = new Set<CssVarString>()
+    val.meta.cssVarsUsed.forEach(v => {
       if (cssVarUsed.has(v)) return
       cssVarUsed.add(v)
-      resolvedVariables.get(v)?.allCssVarsUsed.forEach((v) => cssVarUsed.add(v))
+      resolvedVariables.get(v)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v))
     })
     resolvedAtCustomVariants.set(key, { ...val, allCssVarsUsed: [...cssVarUsed], })
   })
 
   // resolve utilities / construct utility dependency graph
   atUtilities.forEach((val, key) => {
-    const cssVarUsed = new Set<CssVariableString>()
-    const themedValueParams = new Map<string, { resolvedVariableDeclarations: Resolved<VariableDeclaration>[] }>() // themedValueParams["red-500"] = ... Resolved VariableDeclaration [] ...
-    const themedModifierParams = new Map<string, { resolvedVariableDeclarations: Resolved<VariableDeclaration>[] }>() // themedModifierParams["red-500"] = ... Resolved VariableDeclaration [] ...
-    const atUtilitiesUsed: { utility: string; param?: string; modifier?: Modifier }[] = []
+    const cssVarUsed = new Set<CssVarString>()
+    const themedValueParams = new Map<string, ResolvedAtUtilityThemedValueParams>()
+    const themedModifierParams = new Map<string, ResolvedAtUtilityThemedModifierParams>()
+    const customUtilityUsed: UnresolvedCustomUtilityUsed[] = []
+    const customVariantsUsed = new Set<AtCustomVariant>()
+    const valueParamsLookup = new Map<string, ResolvedValueParamTokenUsed>()
 
     // resolve css variables used
-    val.cssVarsUsed.forEach(v => {
-      if (cssVarUsed.has(v)) return
-      cssVarUsed.add(v)
+    val.meta.cssVarsUsed.forEach(v => {
       resolvedVariables.get(v)?.allCssVarsUsed.forEach((v) => cssVarUsed.add(v))
     })
 
     // resolve variants used
-    val.variantsUsed.forEach(v => {
-      resolvedAtCustomVariants.get(v)?.allCssVarsUsed.forEach(v => {
-        if (cssVarUsed.has(v)) return
+    val.meta.variantsUsed.forEach(v => {
+      const customVariant = resolvedAtCustomVariants.get(v)
+      if (!customVariant) return
+      customVariantsUsed.add(customVariant)
+      customVariant.allCssVarsUsed.forEach(v => {
         cssVarUsed.add(v)
         resolvedVariables.get(v)?.allCssVarsUsed.forEach(w => cssVarUsed.add(w))
       })
@@ -118,21 +128,31 @@ export function parseTailwindCSS(css: string) {
     if (val.type === "dynamic") {
       // resolve themed value types
       val.themedValueTypes.forEach(t => {
-        const resolvedVariableDeclarations = new Set<Resolved<VariableDeclaration>>()
+        const resolvedVariableDeclarations = new Set<Resolved<CssVar>>()
         const typeName = t.split("-*")[0]
-        resolvedVariables.forEach(cssvar => { cssvar.name.startsWith(typeName) && resolvedVariableDeclarations.add(cssvar) })
+        resolvedVariables.forEach(cssvar => {
+          if (!cssvar.name.startsWith(typeName)) return
+          const tokenIdentifier = cssvar.name.split(typeName)[1].slice(1)
+          valueParamsLookup.set(tokenIdentifier, {
+            tokensUsed: [...(valueParamsLookup.get(tokenIdentifier)?.tokensUsed ?? []), cssvar],
+            allCssVarsUsed: [...(valueParamsLookup.get(tokenIdentifier)?.allCssVarsUsed ?? []), ...cssvar.allCssVarsUsed]
+          })
+
+          // valueParamsLookup.set(tokenIdentifier, [...(valueParamsLookup.get(tokenIdentifier) ?? []), cssvar])
+          cssvar.name.startsWith(typeName) && resolvedVariableDeclarations.add(cssvar)
+        })
         themedValueParams.set(t, { resolvedVariableDeclarations: [...resolvedVariableDeclarations] })
       })
       // resolve themed modifier types
       val.themedModifierTypes.forEach((t) => {
-        const resolvedVariableDeclarations = new Set<Resolved<VariableDeclaration>>()
+        const resolvedVariableDeclarations = new Set<Resolved<CssVar>>()
         const typeName = t.split("-*")[0]
         resolvedVariables.forEach(cssvar => { cssvar.name.startsWith(typeName) && resolvedVariableDeclarations.add(cssvar) })
         themedModifierParams.set(t, { resolvedVariableDeclarations: [...resolvedVariableDeclarations] })
       })
     }
 
-    val.classNamesUsed.forEach((cn) => {
+    val.meta.classNamesUsed.forEach((cn) => {
       // Parse variants
       const parsed = roughParseClassname(cn)
       parsed.variants.forEach((variantStr) => {
@@ -144,40 +164,79 @@ export function parseTailwindCSS(css: string) {
 
       // Parse utility
       const utility = parseUtility(parsed.utility + (parsed.modifier ? `/${ parsed.modifier }` : ""),)
-      // if (key === 'asdf-*') console.log("Hello?", utility)
-      
-      utility.modifier
+
+      utility.modifier?.cssVarUsed?.forEach(v => { resolvedVariables.get(v)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v)) })
 
       if (utility.type === "default defined param utility") {
         // get this utility's value type.
         // match against the registered value type's values
         utility.valueTypes.forEach(v => { resolvedVariables.get(v.split("*")[0] + utility.param)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v)) })
-        // modifier?
       } else if (utility.type === "default arbitrary utility") {
         const arb = analyzeArbitrary(utility.param)
         arb.cssVarUsed.forEach(v => { resolvedVariables.get(v)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v)) })
-        // modifier?
       } else if (utility.type === "full arbitrary utility") {
         const arb = analyzeArbitrary(utility.full)
         arb.cssVarUsed.forEach(v => { resolvedVariables.get(v)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v)) })
-        // modifier?
       } else if (utility.type === "custom utility") {
-        // find first the name of the utility.
-        [...atUtilities.keys()]
-          .filter((key) => utility.full.startsWith(key))
-          .forEach((key) => {
-            const { prefix, param, modifier } = utility.resolve(key)
-            atUtilitiesUsed.push({ utility: prefix, modifier, param })
-          })
+        customUtilityUsed.push(utility);
       }
     })
 
-    resolvedAtUtilities.set(key, {
+    intermediaryAtUtilities.set(key, {
       ...val,
       allCssVarsUsed: [...cssVarUsed],
       themedValueParams: Object.fromEntries(themedValueParams),
       themedModifierParams: Object.fromEntries(themedModifierParams),
-      atUtilitiesUsed: atUtilitiesUsed,
+      customUtilityUsed,
+      customVariantsUsed: [...customVariantsUsed],
+      valueParamsLookup: Object.fromEntries(valueParamsLookup)
+    })
+  })
+
+  // Phase 3 - resolved all dependencies by traversing the dependency graph
+  const resolvedAtUtilities = new Map<string, Omit<IntermediaryAtUtility, 'customUtilityUsed'> & { customUtilityUsed: IntermediaryAtUtility[] }>()
+  intermediaryAtUtilities.forEach((val, key) => {
+
+    // Context: dependency used in the classnames.
+    const cssVarUsed = new Set<CssVarString>()
+    const customVariantsUsed = new Set<AtCustomVariant>()
+    const atUtilitiesUsed = new Set<IntermediaryAtUtility>()
+
+    const stack: IntermediaryAtUtility[] = [val]
+    while (stack.length) {
+      const curr = stack.pop()!
+      if (atUtilitiesUsed.has(curr)) continue
+      atUtilitiesUsed.add(curr)
+      curr.allCssVarsUsed.forEach(v => cssVarUsed.add(v))
+      curr.customVariantsUsed.forEach(v => {
+        customVariantsUsed.add(v)
+        resolvedAtCustomVariants.get(v.name)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v))
+      })
+      curr.customUtilityUsed.forEach(v => {
+        // Resolve custom utility classname here.
+
+        // dynamic utility
+        [...intermediaryAtUtilities.entries()]
+          .filter(([k, val]) => val.type === 'dynamic' && v.full.startsWith(k.split('-*')[0]))
+          .forEach(([k, val]) => {
+            const utility = parseUtilityWithKnownUtilities(v.full, k)
+            if (utility.type !== 'custom static utility') {
+              val.valueParamsLookup[utility.param].allCssVarsUsed.forEach(v => cssVarUsed.add(v))
+            }
+            stack.push(val)
+          });
+
+        // static utility
+        [...intermediaryAtUtilities.entries()]
+          .filter(([k, val]) => val.name === v.full)
+          .forEach(([k, val]) => stack.push(val))
+      })
+    }
+    resolvedAtUtilities.set(key, {
+      ...val,
+      allCssVarsUsed: [...cssVarUsed],
+      customVariantsUsed: [...customVariantsUsed],
+      customUtilityUsed: [...atUtilitiesUsed],
     })
   })
 
@@ -190,15 +249,15 @@ export function parseTailwindCSS(css: string) {
 
 // → #1 | Process @theme
 //        - reads css variables and their values
-function processAtThemes(n: AtRule, variables: Map<string, VariableDeclaration>) {
+function processAtThemes(n: AtRule, variables: Map<string, CssVar>) {
   n.walkDecls((d) => {
     if (!d.variable || !isCssVariable(d.prop)) return
-    const cssVarsUsed = new Set<CssVariableString>()
-    valueParser(d.value).walk((n) => { extractVarUsed(n, cssVarsUsed) })
+    const cssVarsUsed = new Set<CssVarString>()
+    valueParser(d.value).walk(n => extractVars(n, cssvar => cssVarsUsed.add(cssvar)))
     variables.set(d.prop, {
       name: d.prop,
       value: d.value,
-      cssVarsUsed: [...cssVarsUsed],
+      meta: { cssVarsUsed: [...cssVarsUsed] }
     })
   })
 }
@@ -206,10 +265,10 @@ function processAtThemes(n: AtRule, variables: Map<string, VariableDeclaration>)
 // → #1 | Process @custom-variant [name] (value)
 //        - reads direct css variables used
 function processAtCustomVariants(n: AtRule, customVariants: Map<string, AtCustomVariant>,) {
-  const cssVarsUsed = new Set<CssVariableString>()
+  const cssVarsUsed = new Set<CssVarString>()
   const name = n.params.split(" ")[0]
-  n.walkDecls((d) => { valueParser(d.value).walk((v) => { extractVarUsed(v, cssVarsUsed) }) })
-  customVariants.set(name, { name, cssVarsUsed: [...cssVarsUsed] })
+  n.walkDecls((d) => { valueParser(d.value).walk(v => extractVars(v, cssvar => cssVarsUsed.add(cssvar))) })
+  customVariants.set(name, { name, meta: { cssVarsUsed: [...cssVarsUsed] } })
 }
 
 // → #1 | Process @utility [name]
@@ -222,7 +281,7 @@ function processAtUtilities(n: AtRule, utilities: Map<string, AtUtility>) {
   const type = n.params.endsWith("-*") ? "dynamic" : "static"
   const name = n.params
 
-  const cssVarsUsed = new Set<CssVariableString>()
+  const cssVarsUsed = new Set<CssVarString>()
   const variantsUsed = new Set<string>()
   const classNamesUsed = new Set<string>()
 
@@ -231,10 +290,10 @@ function processAtUtilities(n: AtRule, utilities: Map<string, AtUtility>) {
 
   n.walk((d) => {
     if (d.type === "decl")
-      valueParser(d.value).walk((n) => {
-        extractVarUsed(n, cssVarsUsed)
-        n.value === "--value" && extractThemedTokenTypes(n, valueTypes)
-        n.value === "--modifier" && extractThemedTokenTypes(n, modifierTypes)
+      valueParser(d.value).walk(n => {
+        extractVars(n, cssvar => cssVarsUsed.add(cssvar))
+        n.value === "--value" && extractUtilityThemeTypes(n, v => valueTypes.add(v))
+        n.value === "--modifier" && extractUtilityThemeTypes(n, v => modifierTypes.add(v))
       })
     if (d.type === "atrule" && d.name === "apply")
       d.params.split(/\s+/).forEach((c) => classNamesUsed.add(c))
@@ -245,41 +304,23 @@ function processAtUtilities(n: AtRule, utilities: Map<string, AtUtility>) {
     utilities.set(name, {
       name: name as `${ string }-*`,
       type,
-      classNamesUsed: [...classNamesUsed],
       themedValueTypes: [...valueTypes],
       themedModifierTypes: [...modifierTypes],
-      cssVarsUsed: [...cssVarsUsed],
-      variantsUsed: [...variantsUsed],
+      meta: {
+        classNamesUsed: [...classNamesUsed],
+        cssVarsUsed: [...cssVarsUsed],
+        variantsUsed: [...variantsUsed],
+      }
     })
     return
   }
 
   utilities.set(name, {
     name, type,
-    classNamesUsed: [...classNamesUsed],
-    cssVarsUsed: [...cssVarsUsed],
-    variantsUsed: [...variantsUsed],
+    meta: {
+      classNamesUsed: [...classNamesUsed],
+      cssVarsUsed: [...cssVarsUsed],
+      variantsUsed: [...variantsUsed],
+    }
   })
-}
-
-// Utility
-
-function extractThemedTokenTypes(
-  n: Node,
-  themedTokenTypes: Set<`--${ string }-*`>,
-) {
-  if (n.type !== "function") return
-  n.nodes
-    .filter((a) => a.type === "word")
-    .flatMap((a) => (isTwTypePattern(a.value) ? [a.value] : []))
-    .forEach((a) => { themedTokenTypes.add(a) })
-}
-
-function extractVarUsed(n: Node, cssVarsUsed: Set<CssVariableString>) {
-  if (n.type !== "function" || n.value !== "var" || n.nodes[0].type !== "word")
-    return
-  const argument = n.nodes[0]
-  isCssVariable(argument.value)
-    ? cssVarsUsed.add(argument.value)
-    : console.warn(`CSS Variable must start with '--'. Found: ${ argument.value }`)
 }

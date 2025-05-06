@@ -1,4 +1,4 @@
-import type { CssVariableString, ThemedTokenTypeString } from "../css";
+import type { CssVarString, ThemedTokenTypeString } from "../css";
 import { analyzeArbitrary } from "./arbitrary";
 
 export function extractModifier(input: string) {
@@ -67,7 +67,7 @@ export function extractModifier(input: string) {
 export type Modifier = {
   full: string
   type: "arbitrary" | "defined"
-  cssVarUsed?: CssVariableString[]
+  cssVarUsed?: CssVarString[]
 } | undefined
 
 export function extractModifier2(input: string) {
@@ -106,7 +106,7 @@ export function extractModifier2(input: string) {
       return {
         full,
         type: isArbitrary ? "arbitrary" as const : "defined" as const,
-        cssVarUsed: (isArbitrary ? analyzeArbitrary(full).cssVarUsed : themedTokens?.map(t => `${ t.split('*')[0] + full }` as CssVariableString) )?? [],
+        cssVarUsed: (isArbitrary ? analyzeArbitrary(full).cssVarUsed : themedTokens?.map(t => `${ t.split('*')[0] + full }` as CssVarString) )?? [],
       }
     }
     // getModifier: <T extends ThemedTokenTypeString[] | undefined>(themedTokens?: T) => {
