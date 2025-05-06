@@ -67,6 +67,7 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
 export function PreviewCard(props: ComponentProps<"div">) {
   return (
     <div {...props} className={cn(
+      "bg-white rounded-lg",
       "@container/previewcard",
       "grow py-10 px-4 border-current/10 overflow-hidden",
       "font-sans text-foreground text-base",

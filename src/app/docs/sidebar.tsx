@@ -23,14 +23,15 @@ export function Sidebar({
         "flex flex-col p-4 pt-4",
         "overflow-y-auto",
         "overflow-x-hidden",
-        "bg-current/3 leading-none",
-        "border-r border-current/10",
+        "leading-none",
+        // "bg-current/3 leading-none",
+        // "border-r border-current/10",
         "cursor-pointer",
         "z-20",
         className,
       )}
     >
-      <div className="relative -mx-4 -mt-4 border-b border-current/15 flex items-center">
+      <div className="relative -mx-4 -mt-4 flex items-center">
         <Link href="/" className="block p-4 tracking-[-0.05em] font-mono font-medium text-current hover:bg-current/5 focus:outline-none">
           <span>alfon</span>
           <span className="text-current/50 mx-1">/</span>
@@ -41,7 +42,7 @@ export function Sidebar({
         </Button>
       </div>
 
-      <div className="text-neutral-600 tracking-tight text-[0.95rem] font-mono pt-2">
+      <div className="text-current/80 tracking-tight text-[0.95rem] font-mono pt-2">
         <SidebarItemPage data={{
           name: "index",
           type: "file",

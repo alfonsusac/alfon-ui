@@ -10,7 +10,7 @@ export async function CodeBlock(props: ComponentProps<"div"> & {
   const { code, lang, ...preProps } = props
   const tokens = await codeToTokens(props.code, {
     lang: props.lang,
-    theme: "min-light",
+    theme: "vesper",
     includeExplanation: "scopeName"
   })
   return (

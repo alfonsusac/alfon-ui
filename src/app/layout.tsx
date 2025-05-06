@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, IBM_Plex_Mono, JetBrains_Mono } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import type { ReactNode } from "react";
 
@@ -26,7 +26,7 @@ export default function RootLayout(props: {
   return (
     <html lang="en">
       <body
-        className={`${ fontSans.variable } ${ fontMono.variable } antialiased`}
+        className={`${ fontSans.variable } ${ fontMono.variable } antialiased bg-zinc-800 text-white`}
       >
         {props.children}
       </body>

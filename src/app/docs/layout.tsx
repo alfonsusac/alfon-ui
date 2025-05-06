@@ -17,7 +17,7 @@ export default async function DocsRootLayout(props: {
   const tools = await readdir('./src/app/docs/tools')
 
   return (
-    <div className="min-h-screen shadow-[inset_0_12px_0_0_#fff]"
+    <div className="min-h-screen"
       style={{
         "--page-width": "var(--container-6xl)",
         "--content-width": "var(--container-xl)",

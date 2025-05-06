@@ -6,8 +6,8 @@ html {
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  /* background: var(--color-background); */
+  /* color: var(--color-foreground); */
   font-family: var(--font-next-sans), Arial, Helvetica, sans-serif;
 }
 
