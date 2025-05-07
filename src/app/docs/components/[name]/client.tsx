@@ -2,8 +2,9 @@
 
 import { CollapsibleChevronIcon } from "@/app/icons"
 import { cn } from "lazy-cn"
-import { useState, type ComponentProps, type ReactNode } from "react"
+import { use, useState, type ComponentProps, type ReactNode } from "react"
 import type { ComponentExamplesEntries } from "./page"
+import { ThemePreviewContext } from "../../preview-theme"
 
 export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number], "sourceCode"> & {
   sourceCode: ReactNode
@@ -21,9 +22,9 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
         <p className="m-0! text-xs! mt-2!">{props.description}</p>
       </div>
 
-      <div className="flex flex-col gap-x-2 border border-current/10">
+      <div className="flex flex-col gap-x-2">
 
-        <PreviewCard>
+        <PreviewCard className="mb-2">
           {props.jsx}
         </PreviewCard>
 
@@ -31,7 +32,7 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
           {/* Show Code Button */}
           <div
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 bg-current/3 hover:bg-current/6 cursor-pointer select-none border-t border-current/10 flex items-center gap-1">
+            className="p-2 hover:bg-current/6 cursor-pointer select-none flex items-center gap-1">
             <CollapsibleChevronIcon className={cn(
               "transition-transform",
               isOpen && "rotate-90",
@@ -48,7 +49,7 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
             isOpen && "grid-rows-[1fr]",
           )}>
             <div className="min-h-0 min-w-0">
-              <div className="border-b-0 border-t border-current/10 flex flex-col">
+              <div className="border-b-0 flex flex-col">
                 {props.sourceCode}
               </div>
             </div>
@@ -65,12 +66,21 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
 
 
 export function PreviewCard(props: ComponentProps<"div">) {
+  const previewTheme = use(ThemePreviewContext)
   return (
-    <div {...props} className={cn(
-      "bg-white rounded-lg",
+    <div {...props}
+      style={{
+        "--color-background": previewTheme.colorBackground,
+        "--color-foreground": previewTheme.colorForeground,
+        "--color-primary": previewTheme.colorPrimary,
+        ...props.style
+      }}
+
+      className={cn(
+      "bg-(--color-background) rounded-lg",
       "@container/previewcard",
       "grow py-10 px-4 border-current/10 overflow-hidden",
-      "font-sans text-foreground text-base",
+      "font-sans text-(--color-foreground) text-base",
       props.className,
     )}>
       <div className="flex flex-col @xs/previewcard:flex-row items-center justify-center gap-3 flex-wrap">

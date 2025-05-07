@@ -1,8 +1,6 @@
 "use client"
 
 import { Input } from "@/lib/components/input"
-import { analyzeArbitrary } from "@/lib/tw/arbitrary"
-// import { getVariableUsedFromRoughParse } from "@/lib/tw/parse-class"
 import { roughParseClassname } from "@/lib/tw/parse-class-rough"
 import { parseUtility } from "@/lib/tw/utilities"
 import { createVariantTree, type Variant } from "@/lib/tw/variants"

@@ -6,6 +6,7 @@ import postcss from "postcss";
 import { type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 import Link from "next/link";
+import { ThemeSettingsClient } from "./theme-setings";
 
 export function generateStaticParams() {
   return [
@@ -38,8 +39,8 @@ export default async function DocsComponentsPage(props: {
         <h1>{name}</h1>
         <p>{description}</p>
 
-        <div className="my-4  ">
-          {preview ? <PreviewCard className="py-20">{preview}</PreviewCard> : null}
+        <div className="my-4">
+          {preview ? <PreviewCard className="py-20 mb-4">{preview}</PreviewCard> : null}
           {[
             ["#variants", "Variants"],
             ["#source", "Installation"],
@@ -47,6 +48,7 @@ export default async function DocsComponentsPage(props: {
           ].map(([href, label]) =>
             <Link key={href} href={href} className="block text-xs p-2 text-current/50 hover:bg-current/5 hover:text-current  cursor-pointer">{'->'} {label}</Link>
           )}
+          <ThemeSettingsClient />
         </div>
 
         {!!simpleExamples.length && <>

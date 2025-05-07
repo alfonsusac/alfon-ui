@@ -7,7 +7,7 @@ import { useState } from "react"
 type Token = {
   id: string,
   name: string,
-  value: any,
+  value: any,   
 }
 
 export function DesignSystemMakerClientPage() {

@@ -4,6 +4,7 @@ import { Sidebar } from "./sidebar";
 import { Button } from "@/lib/components/button";
 import { CommentIcon } from "../icons";
 import { readdir } from "fs/promises";
+import { ThemePreviewProvider } from "./preview-theme";
 
 
 const sidebarClassName = "hidden md:flex  w-56 shrink-0"
@@ -24,51 +25,54 @@ export default async function DocsRootLayout(props: {
         "--page-padding": "2rem",
       }}
     >
-      <div className="flex w-full">
+      <ThemePreviewProvider>
+        <div className="flex w-full">
 
-        {/* Top Bar */}
-        <div className={cn("h-12 flex fixed w-screen left-1/2 -translate-x-1/2 flex z-10")}>
-          <div className={cn(sidebarClassName)} />
-          <div className="flex items-center border-b border-transparent p-2 grow">
-            <div className="grow"></div>
-            <div className="flex gap-1 items-center font-mono">
-              <Button>
-                Share
-              </Button>
-              <Button>
-                <CommentIcon className="size-4.5" />
-              </Button>
+          {/* Top Bar */}
+          <div className={cn("h-12 flex fixed w-screen left-1/2 -translate-x-1/2 flex z-10")}>
+            <div className={cn(sidebarClassName)} />
+            <div className="flex items-center border-b border-transparent p-2 grow">
+              <div className="grow"></div>
+              <div className="flex gap-1 items-center font-mono">
+                <Button>
+                  Share
+                </Button>
+                <Button>
+                  <CommentIcon className="size-4.5" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Sidebar */}
-        <Sidebar
-          docs={docs}
-          tools={tools}
-          className={cn(sidebarClassName,
-            "h-screen fixed top-0"
-          )}
-        />
+          {/* Sidebar */}
+          <Sidebar
+            docs={docs}
+            tools={tools}
+            className={cn(sidebarClassName,
+              "h-screen fixed top-0"
+            )}
+          />
 
-        <div className="mx-auto flex w-full">
-          <div className={cn(sidebarClassName, "")} />
-          <div className="px-8 sm:px-16 grow min-w-0">
-            <div className={cn(topbarClassName)} />
-            <div className={cn(
-              "max-w-(--content-width) mx-auto w-full py-10 article",
-            )}>
-              {props.children}
+
+          <div className="mx-auto flex w-full">
+            <div className={cn(sidebarClassName, "")} />
+            <div className="px-8 sm:px-16 grow min-w-0">
+              <div className={cn(topbarClassName)} />
+              <div className={cn(
+                "max-w-(--content-width) mx-auto w-full py-10 article",
+              )}>
+                {props.children}
+              </div>
             </div>
+            <div className={cn(secondarySidebarClassName, "")} />
           </div>
-          <div className={cn(secondarySidebarClassName, "")} />
-        </div>
 
-        {/* TOC */}
-        <div className={cn(secondarySidebarClassName, "flex-col h-screen overflow-auto fixed top-0 right-0 p-2 leading-none")}>
-          {/* <LongText /> */}
+          {/* TOC */}
+          <div className={cn(secondarySidebarClassName, "flex-col h-screen overflow-auto fixed top-0 right-0 p-2 leading-none")}>
+            {/* <LongText /> */}
+          </div>
         </div>
-      </div>
+      </ThemePreviewProvider>
     </div>
   )
 }
