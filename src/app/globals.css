@@ -11,11 +11,10 @@ body {
   font-family: var(--font-next-sans), Arial, Helvetica, sans-serif;
 }
 
-@theme inline {
-  /* --e: var(--a, var(--b)) */
+@theme {
   --color-background: #fff;
   --color-foreground: var(--color-neutral-700);
-  --color-muted: var(--color-neutral-500);
+  --color-muted: color-mix(in oklab, var(--color-foreground) 50%, var(--color-background));
   --color-border: color-mix(in oklab, var(--color-muted) 25%, var(--color-background));
   --color-focus: color-mix(in oklab, var(--color-muted) 25%, transparent);
 

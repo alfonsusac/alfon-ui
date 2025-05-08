@@ -138,7 +138,7 @@ export function Button({
       xl && ["h-11 text-base px-5 [&_svg]:size-5", icon && "w-11 p-0 justify-center"],
       primary && [
         "text-background",
-        "bg-(--color-primary) hover:bg-primary-hover",
+        "bg-primary hover:bg-primary-hover",
         "shadow-sm"
       ],
       subtle && "bg-primary/5 hover:bg-primary/10",

@@ -15,7 +15,7 @@
 
 
   & pre {
-    @apply p-6 text-xs font-mono border border-foreground/10 overflow-x-auto
+    @apply p-6 text-xs font-mono border border-current/10 overflow-x-auto
   }
 
   & p {

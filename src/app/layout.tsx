@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import type { ReactNode } from "react";
+import { cn } from "lazy-cn";
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -24,9 +25,9 @@ export default function RootLayout(props: {
   children: ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn(fontSans.variable, fontMono.variable)}>
       <body
-        className={`${ fontSans.variable } ${ fontMono.variable } antialiased bg-zinc-800 text-white`}
+        className={`antialiased bg-zinc-800 text-white`}
       >
         {props.children}
       </body>

@@ -5,6 +5,7 @@ import { cn } from "lazy-cn"
 import { use, useState, type ComponentProps, type ReactNode } from "react"
 import type { ComponentExamplesEntries } from "./page"
 import { ThemePreviewContext } from "../../preview-theme"
+import Head from "next/head"
 
 export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number], "sourceCode"> & {
   sourceCode: ReactNode
@@ -66,23 +67,16 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
 
 
 export function PreviewCard(props: ComponentProps<"div">) {
-  const previewTheme = use(ThemePreviewContext)
+  // const previewTheme = use(ThemePreviewContext)
   return (
     <div {...props}
-      style={{
-        "--color-background": previewTheme.colorBackground,
-        "--color-foreground": previewTheme.colorForeground,
-        "--color-primary": previewTheme.colorPrimary,
-        ...props.style
-      }}
-
       className={cn(
-      "bg-(--color-background) rounded-lg",
-      "@container/previewcard",
-      "grow py-10 px-4 border-current/10 overflow-hidden",
-      "font-sans text-(--color-foreground) text-base",
-      props.className,
-    )}>
+        "bg-(--color-background) rounded-lg",
+        "@container/previewcard",
+        "grow py-10 px-4 border-current/10 overflow-hidden",
+        "font-sans text-(--color-foreground) text-base",
+        props.className,
+      )}>
       <div className="flex flex-col @xs/previewcard:flex-row items-center justify-center gap-3 flex-wrap">
         {props.children}
       </div>
@@ -94,10 +88,14 @@ export function CardTitleHintBoxThing(props: ComponentProps<"h3">) {
   return (
     <h3 {...props} className={cn(
       "text-[0.65rem]! m-0! font-medium! uppercase",
-      "p-2 text-foreground/30",
-      "bg-foreground/2",
-      "border border-foreground/10 border-b-0",
+      "p-2",
+      "bg-current/2",
+      "border border-current/10 border-b-0",
       props.className
-    )} />
+    )}>
+      <span className="text-current/50">
+        {props.children}
+      </span>
+    </h3>
   )
 }

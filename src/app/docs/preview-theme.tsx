@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useState, type ReactNode } from "react"
+import { createContext, useEffect, useState, type ReactNode } from "react"
 
 
 
@@ -8,6 +8,7 @@ const initialThemePreviewValues = {
   colorBackground: "#ffffff",
   colorForeground: "oklch(37.1% 0 0)",
   colorPrimary: "oklch(37.1% 0 0)",
+  colorDestructive: "oklch(57.7% 0.245 27.325)",
 }
 
 const initialContextValues = {
@@ -24,6 +25,15 @@ export function ThemePreviewProvider(props: {
 }) {
 
   const [data, setData] = useState(initialContextValues)
+
+  useEffect(() => {
+    const root = document.documentElement
+
+    root.style.setProperty("--color-background", data.colorBackground)
+    root.style.setProperty("--color-foreground", data.colorForeground)
+    root.style.setProperty("--color-primary", data.colorPrimary)
+    root.style.setProperty("--color-destructive", data.colorDestructive)
+  })
 
   return (
     <ThemePreviewContext.Provider value={{
