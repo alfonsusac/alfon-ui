@@ -51,44 +51,6 @@ body {
 
 @custom-variant aria-current-page (&[aria-current="page"]);
 @custom-variant svg (& svg);
-@custom-variant test {
-  .test{
-    background-color: var(--color-border);
-    @slot
-  }
-};
-/* @custom-variant h1 (&:is(h1)); */
-/* @custom-variant child (:where(&>*));
-
-@custom-variant cvar1 {
-  &:is(h1) {
-    background-color: blue;
-    @apply bg-blue-500;
-    @variant h1{
-      @slot
-    }
-  }
-} */
-
-@utility test2 {
-  @apply bg-(--a);
-}
-
-@utility reset {
-  all: revert;
-  @apply asdf-2xl
-}
-
-@utility util1-* {
-  @apply asdf-2xl;
-}
-
-@utility asdf-* {
-  content: --value( --tracking-*, --blur-*, 'initial', 'hello');
-  content: --modifier( --tracking-*, --spacing-*, 'initial', 'hello');
-  @apply bg-muted bg-[var(--color-destructive)] bg-[var(--hello)] bg-(--color-destructive-border)/50 [background:var(--color-destructive-hover)/50];
-  @apply input-base;
-}
 
 @utility input-base {
   --input-h-sm:                     calc(var(--spacing) * 8);
@@ -110,28 +72,32 @@ body {
     text-sm
     border border-border/50 outline-none
     transition-[outline,border,box-shadow]
-    shadow-[0_0_0_0_--alpha(var(--color-primary)/0.10),var(--input-shadow)]
-    hover:border-(--input-hover-outline)
-    hover:shadow-[0_0_0_4px_--alpha(var(--color-primary)/0.10),var(--input-shadow)]
+    shadow-[0_0_0_0_--alpha(var(--color-primary)/0.10),var(--input-shadow)];
   ;
-  &:disabled {
-    @apply 
-      bg-foreground/5 
-      pointer-events-none 
-      opacity-75
-  }
-  &:where(:focus), 
+  &:where(:hover),
+  &:where(:focus),
   &:where(:focus-within) {
     @apply 
-      border-(--input-hover-outline) 
-      shadow-[0_0_0_var(--input-shadow-width)_var(--color-focus),var(--input-shadow)]
+      border-(--input-hover-outline)
+      shadow-[0_0_0_4px_--alpha(var(--color-primary)/0.10),var(--input-shadow)]
+  }
+
+  &:disabled {
+    @apply bg-foreground/10
+      pointer-events-none
+      opacity-75;
   }
   &:where([aria-invalid="true"]), 
   &:where(:has([aria-invalid="true"])) {
     @apply 
       border-destructive/50
       hover:border-destructive/75
-      shadow-[var(--input-shadow-destructive-focus),var(--input-shadow)]
+      shadow-[0_0_0_var(--input-shadow-width)_--alpha(var(--color-destructive-focus)/0.5),var(--input-shadow)];
+    &:where(:hover){
+      @apply
+        border-destructive/75
+        shadow-[0_0_0_var(--input-shadow-width)_var(--color-destructive-focus),var(--input-shadow)];
+    }
   }
 }
 /* input-base-end */
@@ -147,4 +113,29 @@ body {
 @utility card {
   --p: calc(var(--spacing) * 3);
   @apply p-(--p) outline outline-border/50 shadow-xs
+}
+
+
+
+/* ---- */
+
+@utility asdf-* {
+  content: --value( --tracking-*, --blur-*, 'initial', 'hello');
+  content: --modifier( --tracking-*, --spacing-*, 'initial', 'hello');
+  @apply bg-muted bg-[var(--color-destructive)] bg-[var(--hello)] bg-(--color-destructive-border)/50 [background:var(--color-destructive-hover)/50];
+  @apply input-base;
+}
+
+
+@utility test2 {
+  @apply bg-(--a);
+}
+
+@utility reset {
+  all: revert;
+  @apply asdf-2xl
+}
+
+@utility util1-* {
+  @apply asdf-2xl;
 }

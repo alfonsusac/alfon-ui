@@ -2,7 +2,7 @@ import {
   isCssVariable,
   type CssVarString,
 } from "@/lib/css"
-import postcss, { type AtRule } from "postcss"
+import postcss, { type AtRule, type Declaration } from "postcss"
 import valueParser, { type Node } from "postcss-value-parser"
 import { roughParseClassname } from "../parse-class-rough"
 import { createVariantTree, walkVariants } from "../variants"
@@ -11,6 +11,7 @@ import { analyzeArbitrary } from "../arbitrary"
 import { extractUtilityThemeTypes, extractVars } from "./parse-value"
 
 export type CssVar = {
+  node: Declaration,
   name: CssVarString
   value: string,
   meta: {
@@ -18,12 +19,14 @@ export type CssVar = {
   }
 }
 export type AtCustomVariant = {
+  node: AtRule,
   name: string
   meta: {
     cssVarsUsed: readonly CssVarString[]
   }
 }
 export type AtUtility = {
+  node: AtRule,
   meta: {
     classNamesUsed: readonly string[]
     cssVarsUsed: readonly CssVarString[]
@@ -157,15 +160,13 @@ export function parseTailwindCSS(css: string) {
       parsed.variants.forEach((variantStr) => {
         walkVariants(createVariantTree(variantStr), (variant) => {
           if (variant.type !== "custom variant") return
-          resolvedAtCustomVariants.get(variant.prefix)?.allCssVarsUsed.forEach((v) => cssVarUsed.add(v))
+          resolvedAtCustomVariants.get(variant.prefix)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v))
         })
       })
 
       // Parse utility
-      const utility = parseUtility(parsed.utility + (parsed.modifier ? `/${ parsed.modifier }` : ""),)
-
+      const utility = parseUtility(parsed.utility + (parsed.modifier ? `/${ parsed.modifier }` : ""))
       utility.modifier?.cssVarUsed?.forEach(v => { resolvedVariables.get(v)?.allCssVarsUsed.forEach(v => cssVarUsed.add(v)) })
-
       if (utility.type === "default defined param utility") {
         // get this utility's value type.
         // match against the registered value type's values
@@ -254,6 +255,7 @@ function processAtThemes(n: AtRule, variables: Map<string, CssVar>) {
     const cssVarsUsed = new Set<CssVarString>()
     valueParser(d.value).walk(n => extractVars(n, cssvar => cssVarsUsed.add(cssvar)))
     variables.set(d.prop, {
+      node: d,
       name: d.prop,
       value: d.value,
       meta: { cssVarsUsed: [...cssVarsUsed] }
@@ -267,7 +269,7 @@ function processAtCustomVariants(n: AtRule, customVariants: Map<string, AtCustom
   const cssVarsUsed = new Set<CssVarString>()
   const name = n.params.split(" ")[0]
   n.walkDecls((d) => { valueParser(d.value).walk(v => extractVars(v, cssvar => cssVarsUsed.add(cssvar))) })
-  customVariants.set(name, { name, meta: { cssVarsUsed: [...cssVarsUsed] } })
+  customVariants.set(name, { node: n, name, meta: { cssVarsUsed: [...cssVarsUsed] } })
 }
 
 // → #1 | Process @utility [name]
@@ -301,6 +303,7 @@ function processAtUtilities(n: AtRule, utilities: Map<string, AtUtility>) {
 
   if (type === "dynamic") {
     utilities.set(name, {
+      node: n,
       name: name as `${ string }-*`,
       type,
       themedValueTypes: [...valueTypes],
@@ -315,6 +318,7 @@ function processAtUtilities(n: AtRule, utilities: Map<string, AtUtility>) {
   }
 
   utilities.set(name, {
+    node: n,
     name, type,
     meta: {
       classNamesUsed: [...classNamesUsed],

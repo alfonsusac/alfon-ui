@@ -7,6 +7,7 @@ import { type JSX } from "react";
 import { CardTitleHintBoxThing, ComponentExampleItem, PreviewCard } from "./client";
 import Link from "next/link";
 import { ThemeSettingsClient } from "./theme-setings";
+import { processClassNames } from "@/lib/tw/process-classnames";
 
 export function generateStaticParams() {
   return [
@@ -27,8 +28,8 @@ export default async function DocsComponentsPage(props: {
     const sourceCode = getSourceCode(rawCode)
 
     const dependencies = getDependencies(sourceCode)
-    const classNamesTokenUsedMap = await getClassNamesTokensUsedSet(sourceCode)
-    const globalcss = await readFile(`./src/app/globals.css`, "utf-8")
+    const classNames = await getClassNamesUsedFromComponent(sourceCode)
+    const usedCss = await processClassNames(classNames)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
     const simpleExamples = examples?.filter(i => !i.advanced) ?? []
@@ -73,7 +74,6 @@ export default async function DocsComponentsPage(props: {
           </div>
         </>}
 
-
         {sourceCode &&
           <h2 className="muted" id="source">
             Source Code
@@ -90,14 +90,11 @@ export default async function DocsComponentsPage(props: {
           {sourceCode &&
             <>
               <CardTitleHintBoxThing className="border-y-0!">Source</CardTitleHintBoxThing>
-              <CodeBlock code={sourceCode} lang={"tsx"} className="border-y-0!" />
+              <CodeBlock code={sourceCode} lang={"tsx"} />
+
+              <CardTitleHintBoxThing className="border-y-0!">Tokens</CardTitleHintBoxThing>
+              <CodeBlock code={usedCss.str} lang={"postcss"} />
             </>}
-          {/* {!!customTokensUsed?.length &&
-            <>
-              <CardTitleHintBoxThing className="border-y-0!">Design Token Used (global.css)</CardTitleHintBoxThing>
-              <CodeBlock code={globalCSS} lang={"sass"} />
-            </>
-          } */}
         </div>
 
         {!!advancedExamples.length && <>
@@ -144,8 +141,8 @@ function getDependencies(sourceCode?: string) {
     .filter(i => !i?.startsWith('./'))
   return dependencies
 }
-async function getClassNamesTokensUsedSet(sourceCode?: string) {
-  if (!sourceCode) return
+async function getClassNamesUsedFromComponent(sourceCode?: string) {
+  if (!sourceCode) return []
   const ast = parse(sourceCode, {
     sourceType: "module",
     plugins: ["jsx", "typescript"],
@@ -183,7 +180,7 @@ async function getClassNamesTokensUsedSet(sourceCode?: string) {
       }
     }
   });
-  return tailwindClassSet
+  return [...tailwindClassSet]
 }
 
 // async function getCustomTokensUsed(tokensStringSet?: Set<string>) {
