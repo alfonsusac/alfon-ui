@@ -15,10 +15,10 @@ export async function processClassNames(classNames: string[]) {
   const globalcss = await readFile('./src/app/globals.css', 'utf-8')
   const css = parseTailwindCSS(defaultglobalcss + '\n' + globalcss)
 
-  const defaultcss = parseTailwindCSS(defaultglobalcss)
+  const customCss = parseTailwindCSS(globalcss)
 
   classNames.forEach(val => {
-    console.log("Parsing: ", val)
+    // console.log("Parsing: ", val)
     const parsed = roughParseClassname(val)
     parsed.variants.forEach(variant => {
       walkVariants(createVariantTree(variant), variant => {
@@ -52,7 +52,7 @@ export async function processClassNames(classNames: string[]) {
           console.log("Dynamic utility: ", k)
           const parsedUtility = parseUtilityWithKnownUtilities(utility.full, k)
           if (parsedUtility.type !== 'custom static utility') {
-            val.valueParamsLookup[parsedUtility.param].allCssVarsUsed?.forEach(v => cssVarsUsed.add(v))
+            val.valueParamsLookup[parsedUtility.param]?.allCssVarsUsed?.forEach(v => cssVarsUsed.add(v))
           }
           utilitiesUsed.add(k)
           val.allCssVarsUsed.forEach(v => cssVarsUsed.add(v))
@@ -77,10 +77,15 @@ export async function processClassNames(classNames: string[]) {
   })
 
   // Build css string
-  const cssVarsNodeUsed = [...cssVarsUsed]
-    .filter(v => !defaultcss.variableDeclarations[v])
+  const customCssVarsUsed = [...cssVarsUsed]
+    .filter(v => customCss.variableDeclarations[v])
+    .map(v => customCss.variableDeclarations[v])
+    .reverse()
+  const cssVarsKeyMaxLength = Math.max(...customCssVarsUsed.map(v => v.name.length)) + 2
+
+  const cssVarsNodeUsed = customCssVarsUsed
     .map(v => {
-      return css.variableDeclarations[v].node.toString()
+      return `  ${ `${v.name}: `.padEnd(cssVarsKeyMaxLength) }${ v.value }`
     })
   const utilitiesNodeUsed = [...utilitiesUsed].map(v => {
     return css.atUtilities[v].node.toString()
@@ -89,25 +94,17 @@ export async function processClassNames(classNames: string[]) {
     return css.atCustomVariants[v].node.toString()
   });
 
-  const str = `@theme {\n`
+  const str = (`@theme {\n`
     + cssVarsNodeUsed.map(e => `  ${ e }`).join('\n') + '\n}'
     + `\n\n`
     + utilitiesNodeUsed.map(e => e).join('\n')
     + `\n\n`
-    + customVariantsNodeUsed.map(e => e).join('\n')
+    + customVariantsNodeUsed.map(e => e).join('\n')).trim()
 
   return {
     cssVarsUsed: [...cssVarsUsed],
     utilitiesUsed: [...utilitiesUsed],
     customVariantsUsed: [...customVariantsUsed],
-
     str,
-
-    // str: {
-    //   cssVarsUsed: cssVarsNodeUsed.join('\n'),
-    //   utilitiesUsed: utilitiesNodeUsed.join('\n'),
-    //   customVariantsUsed: customVariantsNodeUsed.join('\n'),
-    // }
-    // classNames,
   }
 }

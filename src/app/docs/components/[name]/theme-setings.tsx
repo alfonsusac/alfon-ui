@@ -11,17 +11,34 @@ export function ThemeSettingsClient() {
 
   const [opened, setOpened] = useState(true)
   const previewTheme = use(ThemePreviewContext)
-  // const [groupDraggingHue, setGroupDraggingHue] = useState(null as null | React.MouseEvent)
-  // const [groupDragging2DRange, setGroupDragging2DRange] = useState(null as null | React.MouseEvent)
-  // const [currentDraggingId, setCurrentDraggingId] = useState(null as null | string)
-  // // const [groupDraggingEnabled, setGroupDraggingEnabled] = useState(false)
   const [currentDragging, setCurrentDragging] = useState<DraggingContextData | null>(null)
 
   const [lockMap, setLockMap] = useState(new Map<string, {
     hue: boolean,
     saturation: boolean,
     lightness: boolean,
-  }>())
+  }>(Object.entries({
+    ['theme-preview-color-foreground']: {
+      hue: true,
+      saturation: true,
+      lightness: false,
+    },
+    ['theme-preview-color-background']: {
+      hue: true,
+      saturation: true,
+      lightness: true,
+    },
+    ['theme-preview-color-primary']: {
+      hue: true,
+      saturation: false,
+      lightness: false,
+    },
+    ['theme-preview-color-destructive']: {
+      hue: false,
+      saturation: false,
+      lightness: false,
+    },
+  })))
 
   return (
     <>
@@ -306,7 +323,6 @@ function ColorPicker2DRange({ $groupId, $value, $hue, $onChange, $otherPoints, c
     }
 
     const mouseMove = (e: MouseEvent) => {
-      console.log("Hello?", isActive.current, isGroupDrag)
       if (e.buttons === 0) {
         return cancelEvent()
       }

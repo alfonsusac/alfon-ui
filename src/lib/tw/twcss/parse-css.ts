@@ -221,7 +221,11 @@ export function parseTailwindCSS(css: string) {
           .forEach(([k, val]) => {
             const utility = parseUtilityWithKnownUtilities(v.full, k)
             if (utility.type !== 'custom static utility') {
-              val.valueParamsLookup[utility.param].allCssVarsUsed.forEach(v => cssVarUsed.add(v))
+              if (val.valueParamsLookup[utility.param]) {
+                val.valueParamsLookup[utility.param]?.allCssVarsUsed.forEach(v => cssVarUsed.add(v))
+              } else {
+                // console.warn('param not found: ', utility.param, utility.full)
+              }
             }
             stack.push(val)
           });
