@@ -29,7 +29,7 @@ export default function ModesOfFlexPage() {
       <p>This is the default mode of flexbox. It stacks items vertically or horizontally depending on the flex direction.</p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2">
           {Array.from({ length: 5 }).map((e, i) => <div className="bg-zinc-600 w-20 h-10 rounded-md" key={i}></div>)}
         </div>
@@ -40,7 +40,7 @@ export default function ModesOfFlexPage() {
       </p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2 text-white/75 text-sm">
           <div className="bg-zinc-600 px-4 py-2 rounded-md ">Music</div>
           <div className="bg-zinc-600 px-4 py-2 rounded-md">Language</div>
@@ -54,7 +54,7 @@ export default function ModesOfFlexPage() {
       <p>However, the default mode of flexbox behaves unintuitively when there are many elements inside (try resizing):</p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2 text-white/75 text-sm">
           <div className="bg-zinc-600 px-4 py-2 rounded-md ">According</div>
           <div className="bg-zinc-600 px-4 py-2 rounded-md">to</div>
@@ -81,7 +81,7 @@ export default function ModesOfFlexPage() {
       <p>We can use flex-warp to solve this problem. This will make the flex items wrap to the next line when they run out of space.</p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2 flex-wrap</PreviewLabel>
+        <PreviewLabel>flex flex-wrap</PreviewLabel>
         <div className="flex gap-2 flex-wrap  text-white/75 text-sm">
           <div className="bg-zinc-600 px-4 py-2 rounded-md ">Walt</div>
           <div className="bg-zinc-600 px-4 py-2 rounded-md">White</div>
@@ -113,7 +113,7 @@ export default function ModesOfFlexPage() {
       <p>You can also use flexbox to create a hierarchy of importance. This is done by using the flex specific css properties. </p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2">
           <div className="bg-zinc-600 grow w-20 h-10 rounded-md "><PreviewLabel className="m-1">grow</PreviewLabel></div>
           <div className="bg-zinc-600 w-20 h-10 rounded-md " />
@@ -122,7 +122,7 @@ export default function ModesOfFlexPage() {
 
       <p>You can also specify the quantity of space to take up. In this case, grow-2 takes 2/5 of the whole space and grow-3 takes 3/5 of the whole space.</p>
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2">
           <div className="bg-zinc-600 grow-3 rounded-md p-4"><PreviewLabel className="m-1">grow-3</PreviewLabel>
           </div>
@@ -134,7 +134,7 @@ export default function ModesOfFlexPage() {
       <p>However, there is a big problem when using grow against a content that can set the <em>intrinsic size</em> of an item. Most common example is having a long text inside a flex item. You would notice that setting grow-3 to make one item larger doesn't work here.</p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2">
           <div className="bg-zinc-700 p-3 py-2 grow-3 text-4xl font-medium tracking-tighter">
             <PreviewLabel>grow-3</PreviewLabel>
@@ -155,7 +155,7 @@ export default function ModesOfFlexPage() {
       </p>
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2">
           <div className="bg-zinc-700 p-3 py-2 grow-3 basis-0  text-4xl font-medium tracking-tighter">
             <PreviewLabel>grow-3 basis-0</PreviewLabel>
@@ -176,7 +176,7 @@ export default function ModesOfFlexPage() {
 
 
       <PreviewBox>
-        <PreviewLabel>flex gap-2</PreviewLabel>
+        <PreviewLabel>flex</PreviewLabel>
         <div className="flex gap-2">
           <div className="bg-zinc-700 p-3 py-2 text-sm flex-2">
             <PreviewLabel>flex-2</PreviewLabel>
@@ -233,7 +233,7 @@ export default function ModesOfFlexPage() {
         </div>
 
         <br />
-        <PreviewLabel>flex flex-col gap-2</PreviewLabel>
+        <PreviewLabel>flex flex-col</PreviewLabel>
         <div className="flex flex-col gap-2 text-sm text-white/75">
           <div className="p-2 px-4 bg-zinc-600 rounded-lg self-start">
             <PreviewLabel>self-start</PreviewLabel>
