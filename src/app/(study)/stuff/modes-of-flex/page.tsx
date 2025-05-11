@@ -288,7 +288,7 @@ export default function ModesOfFlexPage() {
 
       <footer className="pt-20">
         <p>
-          Written by alfonsusac. Check source code at my github profile.
+          Written by alfonsusac. source code at my github profile.
         </p>
       </footer>
 
