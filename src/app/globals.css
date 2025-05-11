@@ -14,7 +14,7 @@ body {
 @theme {
   --color-background: #fff;
   --color-foreground: var(--color-neutral-700);
-  --color-muted: color-mix(in oklab, var(--color-foreground) 50%, var(--color-background));
+  --color-muted: color-mix(in hsl, var(--color-foreground) 50%, var(--color-background));
   --color-border: color-mix(in hsl, var(--color-foreground) 20%, var(--color-background));
   --color-focus: color-mix(in oklab, var(--color-muted) 25%, transparent);
 
@@ -73,7 +73,7 @@ body {
     border border-border/50 outline-none
     transition-[outline,border,box-shadow]
     shadow-[0_0_0_0_--alpha(var(--color-primary)/0.10),var(--input-shadow)];
-  ;
+  
   &:where(:hover),
   &:where(:focus),
   &:where(:focus-within) {
@@ -138,4 +138,70 @@ body {
 
 @utility util1-* {
   @apply asdf-2xl;
+}
+
+@utility bg-darker-* {
+  background-color: color-mix(in srgb, #000 calc(--value(number) * 10%), var(--bg));
+}
+
+@theme {
+  --align-items-baseline: baseline;
+  --align-items-center: center;
+  --align-items-first-baseline: first-baseline;
+  --align-items-end: flex-end;
+  --align-items-start: flex-start;
+  --align-items-last-baseline: last-baseline;
+  --align-items-normal: normal;
+  --align-items-safe: safe;
+  --align-items-self-end: self-end;
+  --align-items-self-start: self-start;
+  --align-items-stretch: stretch;
+  --align-items-unsafe: unsafe;
+  --align-items-initial: initial;
+  --align-items-inherit: inherit;
+  --align-items-unset: unset;
+
+  --justify-content-baseline: baseline;
+  --justify-content-center: center;
+  --justify-content-first-baseline: first-baseline;
+  --justify-content-end: flex-end;
+  --justify-content-start: flex-start;
+  --justify-content-last-baseline: last-baseline;
+  --justify-content-left: left;
+  --justify-content-right: right;
+  --justify-content-safe: safe;
+  --justify-content-space-around: space-around;
+  --justify-content-space-between: space-between;
+  --justify-content-space-evenly: space-evenly;
+  --justify-content-stretch: stretch;
+  --justify-content-unsafe: unsafe;
+  --justify-content-initial: initial;
+  --justify-content-inherit: inherit;
+  --justify-content-unset: unset;
+}
+
+@utility flexrow {
+  display: flex;
+  flex-direction: row;
+}
+@utility flexcol-* {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  align-items: --modifier(--align-items-*);
+  justify-content: --value(--justify-content-*);
+  gap: calc(--value(number) * var(--spacing))
+}
+
+@utility flexcol {
+  display: flex;
+  flex-direction: column;
+}
+@utility flexrow-* {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  align-items: --modifier(--align-items-*);
+  justify-content: --value(--justify-content-*);
+  gap: calc(--value(number) * var(--spacing))
 }

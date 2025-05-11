@@ -28,6 +28,9 @@ export default function RootLayout(props: {
     <html lang="en" className={cn(fontSans.variable, fontMono.variable)}>
       <body
         className={`antialiased bg-zinc-800 text-white`}
+        style={{
+          '--bg': 'var(--color-zinc-800)'
+        }}
       >
         {props.children}
       </body>

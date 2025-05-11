@@ -1,7 +1,4 @@
 export const description = "Input is a UI element that allows users to enter data. It can be a text field, checkbox, radio button, or any other type of input element."
-export const utilityUsed = [
-  "input-base",
-]
 
 export const Preview = <div className="max-w-2xs flex grow">
   <Input placeholder="John Doe" />

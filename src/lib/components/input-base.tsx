@@ -34,6 +34,7 @@ export function InputBase({
 
 
 import type { ComponentExamplesEntries } from "@/app/docs/components/[name]/page";
+import { Label } from "./input-label";
 export const Examples: ComponentExamplesEntries = [
   {
     name: "Normal",
@@ -137,7 +138,7 @@ export const Examples: ComponentExamplesEntries = [
     description: "A group of input field resembling credit card input fields.",
     advanced: "inspiration",
     fullWidth: true,
-    jsx: <div className="flex grow max-w-xs">
+    jsx: <>
       {/* Preview=Credit Card Input */}
       <div className="flex flex-col">
         <InputBase className="rounded-b-none focus-within:z-10 hover:z-10">
@@ -153,7 +154,7 @@ export const Examples: ComponentExamplesEntries = [
         </div>
       </div>
       {/* End Preview=Credit Card Input */}
-    </div>
+    </>
   },
   {
     name: "Search Input",
@@ -180,6 +181,28 @@ export const Examples: ComponentExamplesEntries = [
         </div>
       </InputBase>
       {/* End Preview=Search Input */}
+    </div>
+  },
+  {
+    name: "With Label",
+    description: "An input field with a label.",
+    advanced: "inspiration",
+    fullWidth: true,
+    jsx: <div className="max-w-sm grow flex flex-col gap-4">
+      {/* Preview=With Label */}
+      <div>
+        <Label>Login</Label>
+        <InputBase>
+          <Input bare placeholder="shadcn" />
+        </InputBase>
+      </div>
+      <div>
+        <Label>Password</Label>
+        <InputBase>
+          <Input bare type="password" />
+        </InputBase>
+      </div>
+      {/* End Preview=With Label */}
     </div>
   }
 ]
