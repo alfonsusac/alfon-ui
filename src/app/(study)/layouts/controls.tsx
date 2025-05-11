@@ -1,3 +1,6 @@
+"use client"
+
+import { cn } from "lazy-cn";
 import { useEffect, useRef, useState } from "react";
 
 export function useHelperControls() {
@@ -120,6 +123,7 @@ export function useHelperControls() {
 
 export function ClassNameTag(props: {
   children?: React.ReactNode;
+  className?: string,
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -137,7 +141,7 @@ export function ClassNameTag(props: {
   }, [])
 
   return (
-    <div ref={ref} className="opacity-(--control-opacity) classnametag text-xs p-0.5 font-mono tracking-tighter text-muted/25 z-50">
+    <div ref={ref} className={cn("opacity-(--control-opacity) classnametag text-xs p-0.5 font-mono tracking-tighter text-muted/25 z-50", props.className)}>
       {props.children}
     </div>
   )
