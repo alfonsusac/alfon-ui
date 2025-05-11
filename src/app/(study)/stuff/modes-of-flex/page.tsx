@@ -20,7 +20,7 @@ export default function ModesOfFlexPage() {
       </p>
 
       <p>
-        <em>Protip!</em> Drag the handles on the bottom right of the preview boxes to see how the flex items behave when the screen size changes. This is a great way to understand how flexbox works in practice.
+        <em className="not-italic">Protip!</em> Drag the handles on the bottom right of the preview boxes to see how the flex items behave when the screen size changes. This is a great way to understand how flexbox works in practice.
       </p>
 
       <br />
