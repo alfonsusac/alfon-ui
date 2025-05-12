@@ -205,3 +205,58 @@ body {
   justify-content: --value(--justify-content-*);
   gap: calc(--value(number) * var(--spacing))
 }
+
+/* ---- */
+
+@utility view3droot {
+  --rotateX: 0deg;
+  --rotateZ: 0deg;
+  --panX: 0px;
+  --panY: 0px;
+  /* --baseZoomOut: -300px;
+  --elevation: 50px;
+  --control-bg: var(--color-background);
+  --control-border: #fff3 1px solid;
+  --control-overflow: visible;
+  --perspective: 1000px; 
+  --rotate-transition: transform 0.5s ease-in-out;
+  */
+  
+  perspective: var(--perspective);
+  @apply w-screen h-screen overflow-auto *:overflow-auto *:*:overflow-auto *:*:overflow-auto min-h-0;
+  
+  &.override {
+    * {
+      overflow: visible !important;
+      position: relative;
+    }
+  }
+
+  > div {
+    @apply transition-(--rotate-transition);
+    transform-style: preserve-3d;
+    /* transform: translateX(-50%) translateY(-50%) translateZ(-500px); */
+    transform: translateX(calc(var(--panX))) translateY(calc(var(--panY)));
+    
+    > div {
+      @apply w-screen h-screen rounded-2xl resize transition-(--rotate-transition);
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rotateX)) rotateZ(var(--rotateZ));
+      transform-origin: calc(50% + var(--panX) * -1) calc(50% + var(--panY) * -1);
+      
+      > div {
+        @apply transition-[transform] duration-500;
+        transform-style: preserve-3d;
+        transform: translateZ(var(--baseZoomOut));
+        & * {
+          @apply transition-all duration-500 bg-background;
+          outline: var(--control-border);
+          transform-style: preserve-3d;
+          transform: translateZ(var(--elevation));
+        }
+      }
+      
+    }
+
+  }
+}
