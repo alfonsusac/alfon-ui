@@ -292,7 +292,7 @@ export default function LayoutStudy2() {
 }
 
 
-export const sidebarMockPages = [
+const sidebarMockPages = [
   {
     "groupname": "Overview",
     "items": [
