@@ -120,10 +120,13 @@ export function useHelperControls() {
 export function ClassNameTag(props: {
   children?: React.ReactNode;
   className?: string,
+  bare?: boolean,
+  white?: boolean,
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (props.bare) return
     if (!ref.current) return
     const parent = ref.current.parentElement
     if (!parent) return
@@ -137,7 +140,11 @@ export function ClassNameTag(props: {
   }, [])
 
   return (
-    <div ref={ref} className={cn("opacity-(--control-opacity) classnametag text-xs p-0.5 font-mono tracking-tighter text-muted/25 z-50", props.className)}>
+    <div ref={ref} className={cn(
+      "opacity-(--control-opacity) classnametag text-xs p-0.5 font-mono tracking-tighter text-muted/25 z-50",
+      props.white ? "text-white" : "text-muted/25",
+      props.className
+    )}>
       {props.children}
     </div>
   )
