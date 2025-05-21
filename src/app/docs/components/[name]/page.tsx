@@ -32,7 +32,7 @@ export default async function DocsComponentsPage(props: {
     const usedCss = await processClassNames(classNames)
 
     const examples = await getExamples(rawCode, ComponentSource['Examples'] ?? undefined)
-    const simpleExamples = examples?.filter(i => !i.advanced) ?? []
+    const simpleExamples = examples?.filter(i => !i.advanced)   ?? []
     const advancedExamples = examples?.filter(i => i.advanced) ?? []
 
     return (

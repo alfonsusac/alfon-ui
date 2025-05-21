@@ -29,7 +29,9 @@ export default function RootLayout(props: {
       <body
         className={`antialiased bg-zinc-800 text-white`}
         style={{
-          '--bg': 'var(--color-zinc-800)'
+          '--bg': 'var(--color-zinc-800)',
+          '--color-background': 'var(--bg)',
+          '--color-primary': 'rgba(159, 159, 159, 1)',
         }}
       >
         {props.children}

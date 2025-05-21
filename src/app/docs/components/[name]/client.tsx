@@ -67,9 +67,12 @@ export function ComponentExampleItem(props: Omit<ComponentExamplesEntries[number
 
 
 export function PreviewCard(props: ComponentProps<"div">) {
-  // const previewTheme = use(ThemePreviewContext)
+  const previewTheme = use(ThemePreviewContext)
   return (
     <div {...props}
+      style={{
+        ...previewTheme.getStyles()
+      }}
       className={cn(
         "bg-(--color-background) rounded-lg",
         "@container/previewcard",

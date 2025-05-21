@@ -120,7 +120,7 @@ export function Button({
   return (
     <Comp {...props} className={cn(
       "flex items-center gap-2 box-border",
-      "h-9 px-4",
+      "h-8.5 px-4",
       icon && "px-3",
 
       "rounded-md",

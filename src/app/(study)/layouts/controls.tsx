@@ -28,16 +28,16 @@ export function useHelperControls() {
     if (!rootRef.current) return
     const root = rootRef.current;
     if (shiftPressed === false) {
-      root.attributeStyleMap.set('--control-p', 0)
-      root.attributeStyleMap.set('--control-gap', 0)
-      root.attributeStyleMap.set('--control-opacity', 0)
-      root.attributeStyleMap.set('--control-bg', 'transparent')
+      root.style.setProperty('--control-p', '0')
+      root.style.setProperty('--control-gap', '0')
+      root.style.setProperty('--control-opacity', '0')
+      root.style.setProperty('--control-bg', 'transparent')
     }
     if (shiftPressed === true) {
-      root.attributeStyleMap.set('--control-p', '1rem')
-      root.attributeStyleMap.set('--control-gap', '0.5rem')
-      root.attributeStyleMap.set('--control-opacity', '1')
-      root.attributeStyleMap.set('--control-bg', '#ffffff09')
+      root.style.setProperty('--control-p', '1rem')
+      root.style.setProperty('--control-gap', '0.5rem')
+      root.style.setProperty('--control-opacity', '1')
+      root.style.setProperty('--control-bg', '#ffffff09')
     }
   }, [shiftPressed])
 
@@ -108,6 +108,7 @@ export function useHelperControls() {
   return {
     Tooltip,
     rootRef,
+    shiftPressed,
   }
 }
 
