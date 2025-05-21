@@ -6,48 +6,65 @@ import { cn } from "lazy-cn"
 import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type SVGProps } from "react"
 import { createPortal } from "react-dom"
 
+
+function useHoveredElementState() {
+  const hoveredSet = useRef(new Set<HTMLElement>).current
+  const clearHoveredElements = () => {
+    hoveredSet.forEach(el => delete el.dataset.designToolHover)
+    hoveredSet.clear()
+  }
+  const addHoveredElement = (el: HTMLElement) => {
+    hoveredSet.add(el)
+    el.dataset.designToolHover = ''
+  }
+  const setHoveredElement = (el: HTMLElement) => {
+    hoveredSet.forEach(el => delete el.dataset.designToolHover)
+    hoveredSet.clear()
+    hoveredSet.add(el)
+    el.dataset.designToolHover = ''
+  }
+  return {
+    clear: clearHoveredElements,
+    add: addHoveredElement,
+    set: setHoveredElement,
+  }
+}
+function useHoverElementsUnderCursor(cb: (els: HTMLElement[]) => void, deps: any[]) {
+  useEffect(() => {
+    const hnadleMouseMove = (e: MouseEvent) => {
+      const hoveredElements = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .filter(el => el instanceof HTMLElement) as HTMLElement[]
+      cb(hoveredElements)
+    }
+    document.addEventListener('mousemove', hnadleMouseMove)
+    document.addEventListener('wheel', hnadleMouseMove)
+    return () => {
+      document.removeEventListener('mousemove', hnadleMouseMove)
+      document.removeEventListener('wheel', hnadleMouseMove)
+    }
+  }, deps)
+}
+
+
 export function DesignDevtool() {
 
-  const hoveredSetRef = useRef(new Set<HTMLElement>).current
-  // const selectedRef = useRef<HTMLElement | null>(null)
-  const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(null)
-
+  const hoveredElement = useHoveredElementState()
   // Handle Mouse Hover
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const handleMouseMove = (e: MouseEvent) => {
-      // Later: only handle if "design mode" is enabled
-      hoveredSetRef.forEach((el) => el.classList.remove('design-tool-hover'))
-      hoveredSetRef.clear()
-
-      const hoveredElements = document.elementsFromPoint(e.clientX, e.clientY)
-      const hoveringTooltip = !!hoveredElements.find((el) => {
-        return el instanceof HTMLElement && el.classList.contains('design-tooltip')
-      })
-      if (hoveringTooltip) return
-
-      hoveredElements
-        .slice(0, 1)
-        .forEach((el) => {
-          hoveredSetRef.add(el as HTMLElement)
-        })
-
-      hoveredSetRef.forEach((el) => {
-        if (el.classList.contains('design-tool-selected')) return
-        el.classList.add('design-tool-hover')
-      })
+  useHoverElementsUnderCursor(hoveringElements => {
+    const hoveringTooltip = !!hoveringElements.find(el => el instanceof HTMLElement && el.classList.contains('design-tooltip'))
+    if (hoveringTooltip) {
+      hoveredElement.clear()
+      return
     }
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("wheel", handleMouseMove)
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("wheel", handleMouseMove)
-    }
+    if (hoveringElements[0] instanceof HTMLElement === false) return
+    hoveredElement.set(hoveringElements[0])
   }, [])
 
+
+  const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(null)
   // Handle Mouse Click
   useEffect(() => {
-    if (typeof window === "undefined") return
     const handleMouseClick = (e: MouseEvent) => {
       // Later: only handle if "design mode" is enabled
       const elementsUnder = document.elementsFromPoint(e.clientX, e.clientY)
@@ -56,12 +73,9 @@ export function DesignDevtool() {
       })
       if (tooltipClicked) return
 
-
       const el = e.target
       if (el instanceof HTMLElement === false) return
       selectElement(el)
-      // selectedElement?.classList.remove('design-tool-selected')
-      // setSelectedElement(el)
     }
     document.addEventListener("click", handleMouseClick)
     return () => document.removeEventListener("click", handleMouseClick)
@@ -69,9 +83,10 @@ export function DesignDevtool() {
 
   // Handle Selected Element Change
   const selectElement = (el: HTMLElement | null) => {
-    selectedElement?.classList.remove('design-tool-selected')
+    delete selectedElement?.dataset.designToolSelected
     setSelectedElement(el)
-    el?.classList.add('design-tool-selected')
+    if (!el) return
+    el.dataset.designToolSelected = ''
   }
 
 
@@ -82,7 +97,11 @@ export function DesignDevtool() {
   return createPortal(
     <TooltipPortal
       targetElement={selectedElement}
-      onTargetElementChange={(el) => selectElement(el)}
+      onTargetElementChange={selectElement}
+      onTargetHovered={el => {
+        if (el instanceof HTMLElement === false) return
+        hoveredElement.set(el)
+      }}
     />
     , document.body, 'design-tool-tooltip'
   )
@@ -94,8 +113,11 @@ export function DesignDevtool() {
 function TooltipPortal(props: {
   targetElement: HTMLElement | null
   onTargetElementChange?: (el: HTMLElement | null) => void
+  onTargetHovered?: (el: HTMLElement | null) => void
 }) {
-  const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const verticalPaddingTopRef = useRef<HTMLDivElement>(null)
+  const verticalPaddingBottomRef = useRef<HTMLDivElement>(null)
 
   const [targetData, setTargetData] = useState<
     {
@@ -103,12 +125,7 @@ function TooltipPortal(props: {
       rect: DOMRect
       computedStyle: CSSStyleDeclaration,
       computedStyleMap: StylePropertyMapReadOnly,
-      traversal: {
-        parent: HTMLElement | null
-        firstChildren: HTMLElement | null
-        previousSibling: HTMLElement | null
-        nextSibling: HTMLElement | null
-      },
+
       isParentFlexOrGrid: boolean,
       propertyValue: {
         right: string,
@@ -122,64 +139,25 @@ function TooltipPortal(props: {
     }
   >()
 
+  const tooltipPosition = useRef({ x: undefined as undefined | number }).current
+
   // Find out about its data. (Delegate data extraction to this component.)
   useLayoutEffect(() => {
-    if (!props.targetElement || !tooltipRef.current) return
-    const rect = props.targetElement.getBoundingClientRect()
+    if (!props.targetElement || !tooltipRef.current || !verticalPaddingTopRef.current) return
+    // Before: save tooltip position for animation
     const tooltip = tooltipRef.current
-
-    tooltip.style.left = `${ rect.right + 10 }px`
-    tooltip.style.top = `${ rect.top }px`
-    tooltip.style.right = ''
-    tooltip.style.bottom = ''
-
-    // Collision Detection
     const tooltipRect = tooltip.getBoundingClientRect()
-    if (tooltipRect.right > window.innerWidth) {
-      tooltip.style.left = ``
-      tooltip.style.right = `${ window.innerWidth - rect.left + 10 }px`
-    }
-    if (tooltipRect.bottom > window.innerHeight) {
-      tooltip.style.top = ``
-      tooltip.style.bottom = `${ window.innerHeight - rect.top }px`
-    }
+    tooltipPosition.x = tooltipRect.left
 
-    // Clamp tooltip position to viewport
-    const newTooltipRect = tooltip.getBoundingClientRect()
-    if (newTooltipRect.left < 0) {
-      tooltip.style.left = `0px`
-      tooltip.style.right = ``
-    }
-    if (newTooltipRect.top < 0) {
-      tooltip.style.top = `0px`
-      tooltip.style.bottom = ``
-    }
-    if (newTooltipRect.bottom > window.innerHeight) {
-      tooltip.style.bottom = `0px`
-      tooltip.style.top = ``
-    }
-    if (newTooltipRect.right > window.innerWidth) {
-      tooltip.style.right = `0px`
-      tooltip.style.left = ``
-    }
 
-    // Set Traversal Data
+    // Save targetElement Data
+    const rect = props.targetElement.getBoundingClientRect()
     const parent = props.targetElement.parentElement
-    const firstChildren = props.targetElement.firstElementChild
-    const previousSibling = props.targetElement.previousElementSibling
-    const nextSibling = props.targetElement.nextElementSibling
-
-
+    verticalPaddingTopRef.current.style.height = `${ rect.top }px`
     setTargetData({
       tagName: props.targetElement.tagName.toLowerCase(),
       rect: rect,
       computedStyle: window.getComputedStyle(props.targetElement),
-      traversal: {
-        parent,
-        firstChildren: firstChildren instanceof HTMLElement ? firstChildren : null,
-        previousSibling: previousSibling instanceof HTMLElement ? previousSibling : null,
-        nextSibling: nextSibling instanceof HTMLElement ? nextSibling : null,
-      },
       isParentFlexOrGrid: parent ? ['flex', 'grid'].includes(window.getComputedStyle(parent).display) : false,
       computedStyleMap: props.targetElement.computedStyleMap(),
       propertyValue: {
@@ -191,8 +169,52 @@ function TooltipPortal(props: {
         height: props.targetElement.computedStyleMap().get('height')?.toString() ?? '',
       }
     })
-
   }, [props.targetElement])
+
+  useLayoutEffect(() => {
+    if (!props.targetElement || !tooltipRef.current) return
+    const rect = props.targetElement.getBoundingClientRect()
+    const tooltip = tooltipRef.current
+
+    // Only update Horizontal position we use vertical padding to move the tooltip up and down
+    tooltip.style.left = `${ rect.right + 10 }px`
+    tooltip.style.right = ''
+
+    // Collision Detection
+    const tooltipRect = tooltip.getBoundingClientRect()
+    if (tooltipRect.right > window.innerWidth) {
+      tooltip.style.left = ``
+      tooltip.style.right = `${ window.innerWidth - rect.left + 10 }px`
+    }
+    // Clamp tooltip position to viewport
+    const newTooltipRect = tooltip.getBoundingClientRect()
+    if (newTooltipRect.left < 0) {
+      tooltip.style.left = `0px`
+      tooltip.style.right = ``
+    }
+    if (newTooltipRect.right > window.innerWidth) {
+      tooltip.style.right = `0px`
+      tooltip.style.left = ``
+    }
+
+    // Animate horizontal position using FLIP
+    const finalRect = tooltip.getBoundingClientRect()
+    if (tooltipPosition.x === undefined) return
+    const delta = finalRect.left - tooltipPosition.x
+    console.log(delta)
+    requestAnimationFrame(() => {
+      tooltip.animate([
+        { transform: `translateX(${ delta * -1 }px)` },
+        { transform: `translateX(0px)` },
+      ], {
+        duration: 200,
+        easing: 'ease-in-out',
+        fill: 'both',
+      })
+    })
+
+
+  }, [targetData])
 
   // Later: update tooltip position on scroll
   // Later: update tooltip position on resize
@@ -201,11 +223,12 @@ function TooltipPortal(props: {
 
   return <div
     ref={tooltipRef}
-    className="design-tooltip fixed p-2 max-h-screen max-w-80 z-[999] text-nowrap flexcol-2/stretch overflow-hidden"
+    className="fixed top-0 h-screen max-w-80 z-[999] text-nowrap flexcol-0/stretch overflow-hidden pointer-events-none"
   >
+    <div ref={verticalPaddingTopRef} className="transition-all duration-200 shrink-999999" /> {/* Dont forget to pointer-event-none later */}
     {// State Conditionals needs to be put here to be reactive. Putting outside of the component will not work.
-      targetData ? <>
-        <div className="overflow-clip bg-neutral-800 py-3.5 [&>div]:px-4 rounded-lg flexcol-3/stretch **:border-neutral-600 flex-1 border-t min-h-0">
+      targetData ? <div className="flexcol-2/stretch p-2 min-h-0">
+        <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 [&>div]:px-4 rounded-lg flexcol-3/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
           <div className="leading-3 text-sm font-medium ">
             {targetData.tagName}{' '}
             <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
@@ -460,11 +483,10 @@ function TooltipPortal(props: {
         </div>
         <TraversalCard
           targetElement={props.targetElement}
-          onTargetElementChange={(el) => {
-            props.onTargetElementChange?.(el)
-          }}
+          onTargetElementChange={props.onTargetElementChange}
+          onTargetHovered={props.onTargetHovered}
         />
-      </> : null
+      </div> : null
     }
   </div>
 }
@@ -472,6 +494,7 @@ function TooltipPortal(props: {
 function TraversalCard(props: {
   targetElement: HTMLElement
   onTargetElementChange?: (el: HTMLElement | null) => void
+  onTargetHovered?: (el: HTMLElement | null) => void
 }) {
   const parent = props.targetElement.parentElement instanceof HTMLElement ? props.targetElement.parentElement : null
   const firstChildren = props.targetElement.firstElementChild instanceof HTMLElement ? props.targetElement.firstElementChild : null
@@ -481,7 +504,7 @@ function TraversalCard(props: {
   const [minimapOpen, setMinimapOpen] = useState(false)
 
   return (
-    <div className="flexrow relative">
+    <div className="flexrow relative design-tooltip pointer-events-auto">
       <div className="flex-1 min-w-0 bg-neutral-800 shrink-0 p-1.5 rounded-lg flexcol/stretch **:border-neutral-600 flex-1 min-h-0 border-t">
         <div className="leading-3 flexrow-space-between">
           <div className="flexrow">
@@ -524,9 +547,8 @@ function TraversalCard(props: {
           <div className="min-h-0">
             <ElementMiniMinimap
               currentElement={props.targetElement}
-              onClick={(e) => {
-                props.onTargetElementChange?.(e)
-              }}
+              onClick={(e) => props.onTargetElementChange?.(e)}
+              onHover={(e) => props.onTargetHovered?.(e)}
             />
           </div>
         </div>
@@ -544,13 +566,14 @@ function ElementBadgeButton(props: {
   className?: string,
   element: HTMLElement,
   onClick?: (e: HTMLElement) => void,
+  onHover?: (e: HTMLElement) => void,
   selected?: boolean,
 }) {
   // Find index of children this element currently is
   const parentElement = props.element.parentElement
   const siblings = parentElement?.children
   const index = siblings ? [...siblings].indexOf(props.element) : -1
-  
+
   const children = props.element.children
   const firstChildren = children[0] instanceof HTMLElement ? children[0] : null
 
@@ -562,13 +585,23 @@ function ElementBadgeButton(props: {
           e.stopPropagation()
           !props.selected && props.onClick?.(props.element)
         }}
+        onMouseMove={(e) => {
+          e.stopPropagation()
+          props.onHover?.(props.element)
+        }}
       >
         <span className="opacity-25 mr-1 text-[0.9em] mb-[1px] inline-block">{index}</span>
         {props.element.tagName.toLowerCase()}
         <span className={cn(props.selected ? "text-blue-400" : "text-neutral-600")}>{[...props.element.classList.values()].map((c => `.${ c }`))}</span>
       </ElementBadge>
-      {firstChildren && props.selected && <ElementBadgeButton element={firstChildren} className="pl-6" onClick={props.onClick} />}
-      
+      {firstChildren && props.selected
+        && <ElementBadgeButton
+          element={firstChildren}
+          className="pl-6"
+          onClick={props.onClick}
+          onHover={props.onHover}
+        />}
+
     </>
   )
 }
@@ -576,6 +609,7 @@ function ElementBadgeButton(props: {
 function ElementMiniMinimap(props: {
   currentElement: HTMLElement,
   onClick?: (e: HTMLElement) => void,
+  onHover?: (e: HTMLElement) => void,
 }) {
   const parentElement = props.currentElement.parentElement
   const firstElement = parentElement?.firstElementChild instanceof HTMLElement ? parentElement?.firstElementChild : null
@@ -598,12 +632,12 @@ function ElementMiniMinimap(props: {
     <div className="flexcol-0 rounded-md text-xs leading-3 contain-inline-size items-stretch font-mono tracking-tighter">
       {
         parentElement
-          ? <ElementBadgeButton element={parentElement} onClick={props.onClick} />
-          : <ElementBadge className="opacity-25">root</ElementBadge>
+          ? <ElementBadgeButton element={parentElement} onClick={props.onClick} onHover={props.onHover} />
+          : <ElementBadge className="opacity-25" >root</ElementBadge>
       }
       {
         firstNotPrevElement
-        && <ElementBadgeButton element={firstNotPrevElement} className="pl-4" onClick={props.onClick} />
+        && <ElementBadgeButton element={firstNotPrevElement} className="pl-4" onClick={props.onClick} onHover={props.onHover} />
       }
       {
         hasPreviousEllipsis
@@ -611,15 +645,15 @@ function ElementMiniMinimap(props: {
       }
       {
         previousElement
-        && <ElementBadgeButton element={previousElement} className="pl-4" onClick={props.onClick} />
+        && <ElementBadgeButton element={previousElement} className="pl-4" onClick={props.onClick} onHover={props.onHover} />
       }
       {
         currentElement
-        && <ElementBadgeButton element={currentElement} className="pl-4" selected onClick={props.onClick} />
+        && <ElementBadgeButton element={currentElement} className="pl-4" selected onClick={props.onClick} onHover={props.onHover} />
       }
       {
         nextElement
-        && <ElementBadgeButton element={nextElement} className="pl-4" onClick={props.onClick} />
+        && <ElementBadgeButton element={nextElement} className="pl-4" onClick={props.onClick} onHover={props.onHover} />
       }
       {
         hasNextEllipsis
@@ -627,7 +661,7 @@ function ElementMiniMinimap(props: {
       }
       {
         lastNotNextElement
-        && <ElementBadgeButton element={lastNotNextElement} className="pl-4" onClick={props.onClick} />
+        && <ElementBadgeButton element={lastNotNextElement} className="pl-4" onClick={props.onClick} onHover={props.onHover} />
       }
     </div>
   )

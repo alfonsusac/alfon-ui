@@ -282,9 +282,9 @@ body {
   }
 }
 
-@utility design-tool-hover {
-  @apply outline 
-  outline-blue-400;
+[data-design-tool-hover] {
+  @apply outline! outline-solid!
+  outline-blue-400!;
   & > :where(*) {
     @apply outline 
     outline-dashed
@@ -292,17 +292,17 @@ body {
   }
 }
 
-@utility design-tool-selected {
+[data-design-tool-selected] {
   @apply outline! outline-2! outline-solid!
   outline-blue-400!;
   & > :where(*) {
-    @apply outline! 
-    outline-dashed!
-    outline-blue-400/50!
+    @apply outline
+    outline-dashed
+    outline-blue-400/50
   }
 }
 
-*:has(> .design-tool-selected) {
-  @apply outline! outline-1! outline-dashed!
+*:has(> [data-design-tool-selected]) {
+  @apply outline! outline-1 outline-dashed
   outline-blue-400/50!;
 }
