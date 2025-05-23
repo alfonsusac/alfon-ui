@@ -299,8 +299,8 @@ function MainCard(props: {
             onOpenChange={() => setCurrentlyCollapsedSection(0)}
             label="Layout">
             {/* Width & Height */}
-            <div className="tooltip-details grid grid-cols-2 gap-1 ">
-              <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-1.5">
+            <div className="grid grid-cols-2 gap-2">
+              <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-2">
                 <div className="text-white/50">W</div>
                 <Value val={formatString(targetData.computedStyleMap.get('height')?.toString())} defaultIf="auto" />
 
@@ -311,7 +311,7 @@ function MainCard(props: {
                 <Value val={formatString(computedStyle.maxHeight)} defaultIf="none" />
               </Field>
 
-              <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-1.5">
+              <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-2">
                 <div className="text-white/50">H</div>
                 <Value val={formatString(targetData.computedStyleMap.get('width')?.toString())} defaultIf="auto" />
 
@@ -353,6 +353,7 @@ function MainCard(props: {
               <div className="col-start-3"><Value val={targetData.computedStyle.marginBottom.replace('px', '')} defaultIf="0" /></div>
             </Field>
 
+            {/* Relative Positioning */}
             {targetData.computedStyle.position !== "static" && <>
               <div className="flexcol-1">
                 <div className="grid grid-cols-[1fr_2fr_1fr] self-stretch">
@@ -381,10 +382,9 @@ function MainCard(props: {
             </>}
 
             {/* Flex */}
-            {
-              targetData.computedStyle.display === 'flex' && <div className="flexrow-2">
-                <div className="grid grid-cols-3 grid-rows-3 text-xs text-center bg-white/5 p-2 rounded-lg self-start relative group"
-                >
+            {targetData.computedStyle.display === 'flex' &&
+              <div className="flexrow-2">
+                <Field className="contain-content grid grid-cols-3 grid-rows-3 text-xs text-center bg-white/5 p-2 rounded-lg self-start relative group">
                   <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
                   <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
                   <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
@@ -425,50 +425,49 @@ function MainCard(props: {
                       <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.4rem', width: '0.15rem' } : { minWidth: '0.4rem', height: '0.15rem' }} />
                     </div>
                   </div>
-                </div>
-                asr
+                </Field>
 
                 <div className="flexcol-2/stretch flex-1">
-                  <div className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
+                  <Field className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
                     <div className="text-center text-white/50"><LucideAlignHorizontalSpaceAround /></div>
                     <div>
                       <Value defaultIf="normal">
                         {targetData.computedStyle.rowGap.replace('px', '')}
                       </Value>
                     </div>
-                  </div>
-                  <div className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
+                  </Field>
+                  <Field className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
                     <div className="text-center text-white/50"><LucideAlignVerticalSpaceAround /></div>
                     <div>
                       <Value defaultIf="normal">
                         {targetData.computedStyle.columnGap.replace('px', '')}
                       </Value>
                     </div>
-                  </div>
+                  </Field>
                 </div>
               </div>
             }
             {
               // Later: Grid
             }
-            {
-              targetData.isParentFlexOrGrid && <>
-                <div className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
-                  <div className="opacity-75">flex</div>
-                  <div className="flexrow-2/center">
-                    <Value defaultIf="0">{targetData.computedStyle.flexGrow}</Value>
-                    <Value defaultIf="1">{targetData.computedStyle.flexShrink}</Value>
-                    <Value defaultIf="auto">{targetData.computedStyle.flexBasis}</Value>
-                  </div>
+
+            {/* Other Details */}
+            {targetData.isParentFlexOrGrid && <>
+              <Field className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
+                <div className="opacity-75">flex</div>
+                <div className="flexrow-2/center">
+                  <Value defaultIf="0">{targetData.computedStyle.flexGrow}</Value>
+                  <Value defaultIf="1">{targetData.computedStyle.flexShrink}</Value>
+                  <Value defaultIf="auto">{targetData.computedStyle.flexBasis}</Value>
                 </div>
-              </>
-            }
-            <div className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
+              </Field>
+            </>}
+            <Field className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
               <div className="opacity-75">z-index</div>
               <div className="flexrow-2/center">
                 <Value defaultIf="auto">{targetData.computedStyle.zIndex}</Value>
               </div>
-            </div>
+            </Field>
           </CollapsibleSection>
           <hr className="border-neutral-700!" />
           <CollapsibleSection
@@ -643,7 +642,10 @@ function semanticFontWeight(weight: number): string {
 function Field(props: ComponentProps<"div">) {
   return (
     <div {...props}
-      className={cn("bg-white/5 rounded-md p-2 leading-3 contain-inline-size", props.className)}
+      className={cn("bg-white/5 rounded-md p-2 py-1.5 leading-3 contain-inline-size",
+        // "shadow-[inset_0_0.1rem_0.1rem_-0.1rem_#fff2,inset_0_-0.05rem_#0005,0_0.1rem_0.1rem_-0.05rem_#0002]",
+        "shadow-[inset_0_0.1rem_0.1rem_-0.1rem_#fff2]",
+        props.className)}
     />
   )
 }
