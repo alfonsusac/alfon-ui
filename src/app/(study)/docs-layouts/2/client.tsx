@@ -3,7 +3,7 @@
 import { Button } from "@/lib/components/button"
 import { LucideChevronDown } from "@/lib/components/input-base"
 import { cn } from "lazy-cn"
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type SVGProps } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode, type SVGProps } from "react"
 import { createPortal } from "react-dom"
 
 
@@ -117,7 +117,6 @@ function TooltipPortal(props: {
 }) {
   const tooltipRef = useRef<HTMLDivElement>(null)
   const verticalPaddingTopRef = useRef<HTMLDivElement>(null)
-  const verticalPaddingBottomRef = useRef<HTMLDivElement>(null)
 
   const [targetData, setTargetData] = useState<
     {
@@ -125,7 +124,6 @@ function TooltipPortal(props: {
       rect: DOMRect
       computedStyle: CSSStyleDeclaration,
       computedStyleMap: StylePropertyMapReadOnly,
-
       isParentFlexOrGrid: boolean,
       propertyValue: {
         right: string,
@@ -135,25 +133,17 @@ function TooltipPortal(props: {
         width: string,
         height: string,
       },
-
     }
   >()
 
-  const tooltipPosition = useRef({ x: undefined as undefined | number }).current
 
   // Find out about its data. (Delegate data extraction to this component.)
   useLayoutEffect(() => {
     if (!props.targetElement || !tooltipRef.current || !verticalPaddingTopRef.current) return
-    // Before: save tooltip position for animation
-    const tooltip = tooltipRef.current
-    const tooltipRect = tooltip.getBoundingClientRect()
-    tooltipPosition.x = tooltipRect.left
-
 
     // Save targetElement Data
     const rect = props.targetElement.getBoundingClientRect()
     const parent = props.targetElement.parentElement
-    verticalPaddingTopRef.current.style.height = `${ rect.top }px`
     setTargetData({
       tagName: props.targetElement.tagName.toLowerCase(),
       rect: rect,
@@ -171,37 +161,51 @@ function TooltipPortal(props: {
     })
   }, [props.targetElement])
 
+  const tooltipWidth = 224
+  const prevTooltipData = useRef({
+    x: undefined as undefined | number,
+    prevTarget: undefined as undefined | HTMLElement
+  }).current
+
   useLayoutEffect(() => {
-    if (!props.targetElement || !tooltipRef.current) return
-    const rect = props.targetElement.getBoundingClientRect()
+    if (!props.targetElement || !tooltipRef.current || !verticalPaddingTopRef.current) return
     const tooltip = tooltipRef.current
 
+    // Before: save tooltip position for animation
+    if (prevTooltipData.prevTarget !== undefined) {
+      const tooltipRect = tooltip.getBoundingClientRect()
+      prevTooltipData.x = tooltipRect.left
+    }
+    // Calculate next tooltip position
+    const rect = props.targetElement.getBoundingClientRect()
+
     // Only update Horizontal position we use vertical padding to move the tooltip up and down
-    tooltip.style.left = `${ rect.right + 10 }px`
-    tooltip.style.right = ''
+    let left = rect.right as number | undefined
+    let right = undefined as number | undefined
 
     // Collision Detection
-    const tooltipRect = tooltip.getBoundingClientRect()
-    if (tooltipRect.right > window.innerWidth) {
-      tooltip.style.left = ``
-      tooltip.style.right = `${ window.innerWidth - rect.left + 10 }px`
+    if (rect.right + tooltipWidth > window.innerWidth) {
+      left = undefined
+      right = window.innerWidth - rect.left
+      if (right + tooltipWidth > window.innerWidth) {
+        left = 0
+        right = undefined
+      }
     }
-    // Clamp tooltip position to viewport
-    const newTooltipRect = tooltip.getBoundingClientRect()
-    if (newTooltipRect.left < 0) {
-      tooltip.style.left = `0px`
-      tooltip.style.right = ``
-    }
-    if (newTooltipRect.right > window.innerWidth) {
-      tooltip.style.right = `0px`
-      tooltip.style.left = ``
-    }
+
+    // Apply new position
+    tooltip.style.left = left === undefined ? '' : `${ left }px`
+    tooltip.style.right = right === undefined ? '' : `${ right }px`
+    verticalPaddingTopRef.current.style.height = `${ rect.top }px`
+
+    // Save tooltip data: Don't record the first time
+    prevTooltipData.prevTarget = props.targetElement
 
     // Animate horizontal position using FLIP
     const finalRect = tooltip.getBoundingClientRect()
-    if (tooltipPosition.x === undefined) return
-    const delta = finalRect.left - tooltipPosition.x
-    console.log(delta)
+    if (prevTooltipData.x === undefined) return
+    console.log('finalRect', finalRect, prevTooltipData.x)
+    const delta = finalRect.left - prevTooltipData.x
     requestAnimationFrame(() => {
       tooltip.animate([
         { transform: `translateX(${ delta * -1 }px)` },
@@ -213,41 +217,58 @@ function TooltipPortal(props: {
       })
     })
 
-
-  }, [targetData])
+  }, [props.targetElement])
 
   // Later: update tooltip position on scroll
   // Later: update tooltip position on resize
+
+  const [currentlyCollapsedSection, setCurrentlyCollapsedSection] = useState(0)
 
   if (!props.targetElement) return null
 
   return <div
     ref={tooltipRef}
-    className="fixed top-0 h-screen max-w-80 z-[999] text-nowrap flexcol-0/stretch overflow-hidden pointer-events-none"
+    className="fixed top-0 h-screen z-[999] text-nowrap flexcol-0/stretch overflow-hidden pointer-events-none p-2"
+    style={{
+      width: tooltipWidth,
+    }}
   >
-    <div ref={verticalPaddingTopRef} className="transition-all duration-200 shrink-999999" /> {/* Dont forget to pointer-event-none later */}
+    <div ref={verticalPaddingTopRef} className="transition-all duration-200 shrink-999999" />
     {// State Conditionals needs to be put here to be reactive. Putting outside of the component will not work.
-      targetData ? <div className="flexcol-2/stretch p-2 min-h-0">
-        <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 [&>div]:px-4 rounded-lg flexcol-3/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
-          <div className="leading-3 text-sm font-medium ">
-            {targetData.tagName}{' '}
-            <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
-              {targetData.computedStyle.display}
-            </div>{' '}
-            {
-              targetData.computedStyle.position !== 'static' && <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
-                {targetData.computedStyle.position}
-              </div>
-            }
-          </div>
-          <hr />
-          <div className="relative -mt-3 pt-3 px-0! flex-1 min-h-0 flexcol">
-            <div className="absolute z-10 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800" />
-            <div className="flex-1 min-h-0 overflow-auto px-4 -my-3 py-3">
-              <div className="flexcol-2/stretch text-xs relative">
-                <div className="text-xs font-medium">
-                  Layout
+      targetData &&
+      <div className="flexcol-2/stretch min-h-0">
+        {/* <MainCard element={props.targetElement} /> */}
+        <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 pb-0 [&>div]:px-4 rounded-lg flexcol-0/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
+
+          <div className="flexcol-2 pb-2">
+            <div className="leading-3 text-sm font-medium ">
+              {targetData.tagName}{' '}
+              <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
+                {targetData.computedStyle.display}
+              </div>{' '}
+              {
+                targetData.computedStyle.position !== 'static' && <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
+                  {targetData.computedStyle.position}
                 </div>
+              }
+            </div>
+            {/* <div className="flexrow-1/center flex-wrap text-sm -mx-2 font-medium">
+              <div className="text-[0.85em] p-0.5 px-2 rounded-md data-selected:bg-white/5 text-white/50 data-selected:text-white/90 hover:bg-white/3 select-none cursor-pointer" data-selected>Layout</div>
+              <div className="text-[0.85em] p-0.5 px-2 rounded-md data-selected:bg-white/5 text-white/50 data-selected:text-white/90 hover:bg-white/3 select-none cursor-pointer">Typography</div>
+              <div className="text-[0.85em] p-0.5 px-2 rounded-md data-selected:bg-white/5 text-white/50 data-selected:text-white/90 hover:bg-white/3 select-none cursor-pointer">Color</div>
+            </div> */}
+          </div>
+
+
+          <hr className="border-neutral-700!" />
+          <div className="relative px-0! py-0! flex-1 min-h-0 flexcol">
+            <div className="absolute z-30 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800" />
+
+            <div className="flex-1 min-h-0 overflow-auto">
+              <CollapsibleSection
+                isOpen={currentlyCollapsedSection === 0}
+                onOpenChange={() => setCurrentlyCollapsedSection(0)}
+                label="Layout">
                 {/* Width & Height */}
                 <div className="tooltip-details grid grid-cols-2 gap-1 ">
                   <div className="flexcol-center h-16 bg-white/5 px-2 pr-3 rounded-sm leading-3">
@@ -472,13 +493,23 @@ function TooltipPortal(props: {
                     <Value defaultIf="auto">{targetData.computedStyle.zIndex}</Value>
                   </div>
                 </div>
-                {/* 
-                <div className="px-2 rounded-md bg-black/10 py-2 min-h-20 min-w-0 overflow-x-auto font-mono text-[0.9em]">
-                  {props.targetElement.outerHTML}
-                </div> */}
-              </div>
+              </CollapsibleSection>
+              <hr className="border-neutral-700!" />
+              <CollapsibleSection
+                isOpen={currentlyCollapsedSection === 1}
+                onOpenChange={() => setCurrentlyCollapsedSection(1)}
+                label="Typography">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia quidem beatae in explicabo deleniti nulla temporibus iste culpa a quae nam, ea incidunt sint, iure consequuntur. Ex error consequuntur sit?
+              </CollapsibleSection>
+              <hr className="border-neutral-700!" />
+                <CollapsibleSection
+                  isOpen={currentlyCollapsedSection === 2}
+                  onOpenChange={() => setCurrentlyCollapsedSection(2)}
+                label="Colors">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsum magnam molestias, odio assumenda esse eos ratione tenetur officia hic ab fugit ad dicta cumque ipsa cum voluptate neque vitae quam.
+              </CollapsibleSection>
             </div>
-            <div className="absolute z-10 -bottom-3 w-full h-3 bg-gradient-to-b from-transparent to-neutral-800" />
+            <div className="absolute z-30 bottom-0 w-full h-4 bg-gradient-to-b from-transparent to-neutral-800" />
           </div>
         </div>
         <TraversalCard
@@ -486,9 +517,73 @@ function TooltipPortal(props: {
           onTargetElementChange={props.onTargetElementChange}
           onTargetHovered={props.onTargetHovered}
         />
-      </div> : null
+      </div>
     }
   </div>
+}
+
+function MainCard(props: {
+  element: HTMLElement
+}) {
+  const tagName = props.element.tagName.toLowerCase()
+  const computedStyle = window.getComputedStyle(props.element)
+
+  return (
+    <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 [&>div]:px-4 rounded-lg flexcol-3/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
+      <div className="leading-3 text-sm font-medium ">
+        {tagName}{' '}
+        <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
+          {computedStyle.display}
+        </div>{' '}
+        {
+          computedStyle.position !== 'static' && <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
+            {computedStyle.position}
+          </div>
+        }
+      </div>
+      <hr />
+      <div className="relative -mt-3 pt-3 px-0! flex-1 min-h-0 flexcol">
+        <div className="absolute z-10 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800" />
+        <div className="flex-1 min-h-0 overflow-auto px-4 -my-3 py-3">
+          <div className="flexcol-2/stretch text-xs relative">
+            <div className="text-xs font-medium">
+              Layout
+            </div>
+          </div>
+        </div>
+        <div className="absolute z-10 -bottom-3 w-full h-3 bg-gradient-to-b from-transparent to-neutral-800" />
+      </div>
+    </div>
+  )
+}
+
+function CollapsibleSection(props: {
+  label: string,
+  children?: ReactNode,
+  className?: string,
+  onOpenChange?: (open: boolean) => void,
+  isOpen?: boolean,
+}) {
+  // const [open, setOpen] = useState(false)
+  return (
+    <div className={cn("flexcol-0/stretch text-xs relative shrink-0 pb-3", props.className)}>
+      <div className="shrink-0 flexrow-space-between/center px-4 py-3 z-20 bg-gradient-to-t from-transparent to-neutral-800 to-50% cursor-pointer" onClick={() => props.onOpenChange?.(!props.isOpen)}>
+        <div className="text-xs font-medium">
+          {props.label}
+        </div>
+        <div className={cn(props.isOpen && "rotate-180", "transition")}>
+          <LucideChevronDown />
+        </div>
+      </div>
+      <div className="transition-[grid-template-rows] duration-300 grid grid-rows-[0fr] data-open:grid-rows-[1fr] overflow-clip -mt-3" data-open={props.isOpen ? "" : undefined}>
+        <div className="min-h-0">
+          <div className="flexcol-2/stretch relative p-3 px-4 pb-0">
+            {props.children}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function TraversalCard(props: {
