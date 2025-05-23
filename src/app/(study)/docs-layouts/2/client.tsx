@@ -222,7 +222,6 @@ function TooltipPortal(props: {
   // Later: update tooltip position on scroll
   // Later: update tooltip position on resize
 
-  const [currentlyCollapsedSection, setCurrentlyCollapsedSection] = useState(0)
 
   if (!props.targetElement) return null
 
@@ -237,281 +236,7 @@ function TooltipPortal(props: {
     {// State Conditionals needs to be put here to be reactive. Putting outside of the component will not work.
       targetData &&
       <div className="flexcol-2/stretch min-h-0">
-        {/* <MainCard element={props.targetElement} /> */}
-        <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 pb-0 [&>div]:px-4 rounded-lg flexcol-0/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
-
-          <div className="flexcol-2 pb-2">
-            <div className="leading-3 text-sm font-medium ">
-              {targetData.tagName}{' '}
-              <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
-                {targetData.computedStyle.display}
-              </div>{' '}
-              {
-                targetData.computedStyle.position !== 'static' && <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
-                  {targetData.computedStyle.position}
-                </div>
-              }
-            </div>
-            {/* <div className="flexrow-1/center flex-wrap text-sm -mx-2 font-medium">
-              <div className="text-[0.85em] p-0.5 px-2 rounded-md data-selected:bg-white/5 text-white/50 data-selected:text-white/90 hover:bg-white/3 select-none cursor-pointer" data-selected>Layout</div>
-              <div className="text-[0.85em] p-0.5 px-2 rounded-md data-selected:bg-white/5 text-white/50 data-selected:text-white/90 hover:bg-white/3 select-none cursor-pointer">Typography</div>
-              <div className="text-[0.85em] p-0.5 px-2 rounded-md data-selected:bg-white/5 text-white/50 data-selected:text-white/90 hover:bg-white/3 select-none cursor-pointer">Color</div>
-            </div> */}
-          </div>
-
-
-          <hr className="border-neutral-700!" />
-          <div className="relative px-0! py-0! flex-1 min-h-0 flexcol">
-            <div className="absolute z-30 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800" />
-
-            <div className="flex-1 min-h-0 overflow-auto">
-              <CollapsibleSection
-                isOpen={currentlyCollapsedSection === 0}
-                onOpenChange={() => setCurrentlyCollapsedSection(0)}
-                label="Layout">
-                {/* Width & Height */}
-                <div className="tooltip-details grid grid-cols-2 gap-1 ">
-                  <div className="flexcol-center h-16 bg-white/5 px-2 pr-3 rounded-sm leading-3">
-                    <div className="flexrow-2/center h-5">
-                      <div className="text-center text-white/50 w-3">W</div>
-                      <div className="">
-                        <Value defaultIf="auto">
-                          {formatString(targetData.computedStyleMap.get('width')?.toString())}
-                        </Value>
-                      </div>
-                    </div>
-                    <div className="flexrow-2/center h-5">
-                      <div className="text-center text-white/50 w-3 rotate-90"><AkarIconsAlignToMiddle /></div>
-                      <div className=""><Value defaultIf="auto">{formatString(targetData.computedStyle.minWidth)}</Value></div>
-                    </div>
-                    <div className="flexrow-2/center h-5">
-                      <div className="text-center text-white/50 w-3"><UilArrowsShrinkH /></div>
-                      <div className=""><Value defaultIf="none">{formatString(targetData.computedStyle.maxWidth)}</Value></div>
-                    </div>
-                  </div>
-                  <div className="flexcol-center h-16 bg-white/5 px-2 pr-3 rounded-sm leading-3">
-                    <div className="flexrow-2/center h-5">
-                      <div className="text-center text-white/50 w-3">H</div>
-                      <div className="">
-                        <Value defaultIf="auto">
-                          {formatString(targetData.computedStyleMap.get('height')?.toString())}
-                        </Value>
-                      </div>
-                    </div>
-                    <div className="flexrow-2/center h-5">
-                      <div className="text-center text-white/50 w-3"><AkarIconsAlignToMiddle /></div>
-                      <div className=""><Value defaultIf="auto">{targetData.computedStyle.minHeight.replace('px', '')}</Value></div>
-                    </div>
-                    <div className="flexrow-2/center h-5">
-                      <div className="text-center text-white/50 w-3 rotate-90"><UilArrowsShrinkH /></div>
-                      <div className=""><Value defaultIf="none">{targetData.computedStyle.maxHeight.replace('px', '')}</Value></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Margin & Padding & Dimension */}
-                <div className="grid grid-cols-[1fr_1fr_min-content_1fr_1fr] grid-rows-5 *:flexrow-center/center text-xs text-center bg-white/5 p-1 rounded-lg">
-
-                  <div className=" text-white/50 self-start">m</div>
-                  <div />
-                  <div>
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.marginTop.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div />
-                  <div />
-
-                  <div />
-                  <div className="border-t border-l text-white/50">p</div>
-                  <div className="border-t">
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.paddingTop.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div className="border-t border-r" />
-                  <div />
-
-                  <div className="mx-1">
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.marginLeft.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div className="border-l">
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.paddingLeft.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div className="opacity-25 px-2 py-1 gap-1">
-                    {formatNumber(targetData.rect.width)} <span className="text-[0.8em]">✕</span> {formatNumber(targetData.rect.height)}
-                  </div>
-                  <div className="border-r">
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.paddingRight.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div>
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.marginRight.replace('px', '')}
-                    </Value>
-                  </div>
-
-                  <div />
-                  <div className="border-b border-l" />
-                  <div className="border-b">
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.paddingBottom.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div className="border-b border-r" />
-                  <div />
-
-                  <div />
-                  <div />
-                  <div>
-                    <Value defaultIf="0">
-                      {targetData.computedStyle.marginBottom.replace('px', '')}
-                    </Value>
-                  </div>
-                  <div />
-                  <div />
-                </div>
-
-                {targetData.computedStyle.position !== "static" && <>
-                  <div className="flexcol-1">
-                    <div className="grid grid-cols-[1fr_2fr_1fr] self-stretch">
-                      <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center col-start-2">
-                        <div className="opacity-75">T</div>
-                        <div className=""><Value defaultIf="auto">{targetData.propertyValue.top.replace('px', '')}</Value></div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-[1fr_1fr] gap-1 self-stretch">
-                      <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center">
-                        <div className="opacity-75">L</div>
-                        <div className=""><Value defaultIf="auto">{targetData.propertyValue.left}</Value></div>
-                      </div>
-                      <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center">
-                        <div className="opacity-75">R</div>
-                        <div className=""><Value defaultIf="auto">{targetData.propertyValue.right}</Value></div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-[1fr_2fr_1fr] self-stretch">
-                      <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center col-start-2">
-                        <div className="opacity-75">B</div>
-                        <div className=""><Value defaultIf="auto">{targetData.propertyValue.bottom}</Value></div>
-                      </div>
-                    </div>
-                  </div>
-                </>}
-
-
-
-                {/* Flex */}
-                {
-                  targetData.computedStyle.display === 'flex' && <div className="flexrow-2">
-                    <div className="grid grid-cols-3 grid-rows-3 text-xs text-center bg-white/5 p-2 rounded-lg self-start relative group"
-                    >
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
-                      {targetData.computedStyle.flexDirection === "column" &&
-                        <div className="absolute h-full w-0 border-l border-neutral-500! left-1/2">
-                          <div className="size-2 origin-bottom-right border-b border-r border-neutral-500! absolute bottom-0 right-0 -translate-x-[0.5px] rotate-45" />
-                        </div>
-                      }
-                      {targetData.computedStyle.flexDirection === "row" &&
-                        <div className="absolute w-full h-0 border-t border-neutral-500! top-1/2">
-                          <div className="size-2 origin-bottom-right border-b border-r border-neutral-500! absolute bottom-0 right-0 -translate-x-[0.5px] -rotate-45" />
-                        </div>
-                      }
-                      <div className="absolute inset-0 p-2 flex gap-0.5"
-                        style={{
-                          flexDirection: targetData.computedStyle.flexDirection as any,
-                          justifyContent: targetData.computedStyle.justifyContent,
-                          alignItems: targetData.computedStyle.alignItems,
-                        }}
-                      >
-                        <div className="min-h-6 min-w-6 flex items-center justify-center gap-0.5"
-                          style={{
-                            flexDirection: targetData.computedStyle.flexDirection as any,
-                            alignItems: targetData.computedStyle.alignItems,
-                            justifyContent: targetData.computedStyle.justifyContent,
-                            width: ['space-around', 'space-between', 'space-evenly', 'stretch'].includes(targetData.computedStyle.justifyContent) ? '100%' : 'unset',
-                            padding: ['space-around', 'space-between', 'space-evenly', 'stretch'].includes(targetData.computedStyle.justifyContent) ? '0' : '0.5rem',
-                          }}
-                        >
-                          <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.6rem', width: '0.15rem' } : { minWidth: '0.6rem', height: '0.15rem' }} />
-                          <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.8rem', width: '0.15rem' } : { minWidth: '0.8rem', height: '0.15rem' }} />
-                          <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.4rem', width: '0.15rem' } : { minWidth: '0.4rem', height: '0.15rem' }} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flexcol-2/stretch flex-1">
-                      <div className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
-                        <div className="text-center text-white/50"><LucideAlignHorizontalSpaceAround /></div>
-                        <div>
-                          <Value defaultIf="normal">
-                            {targetData.computedStyle.rowGap.replace('px', '')}
-                          </Value>
-                        </div>
-                      </div>
-                      <div className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
-                        <div className="text-center text-white/50"><LucideAlignVerticalSpaceAround /></div>
-                        <div>
-                          <Value defaultIf="normal">
-                            {targetData.computedStyle.columnGap.replace('px', '')}
-                          </Value>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                }
-                {
-                  // Later: Grid
-                }
-                {
-                  targetData.isParentFlexOrGrid && <>
-                    <div className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
-                      <div className="opacity-75">flex</div>
-                      <div className="flexrow-2/center">
-                        <Value defaultIf="0">{targetData.computedStyle.flexGrow}</Value>
-                        <Value defaultIf="1">{targetData.computedStyle.flexShrink}</Value>
-                        <Value defaultIf="auto">{targetData.computedStyle.flexBasis}</Value>
-                      </div>
-                    </div>
-                  </>
-                }
-                <div className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
-                  <div className="opacity-75">z-index</div>
-                  <div className="flexrow-2/center">
-                    <Value defaultIf="auto">{targetData.computedStyle.zIndex}</Value>
-                  </div>
-                </div>
-              </CollapsibleSection>
-              <hr className="border-neutral-700!" />
-              <CollapsibleSection
-                isOpen={currentlyCollapsedSection === 1}
-                onOpenChange={() => setCurrentlyCollapsedSection(1)}
-                label="Typography">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia quidem beatae in explicabo deleniti nulla temporibus iste culpa a quae nam, ea incidunt sint, iure consequuntur. Ex error consequuntur sit?
-              </CollapsibleSection>
-              <hr className="border-neutral-700!" />
-                <CollapsibleSection
-                  isOpen={currentlyCollapsedSection === 2}
-                  onOpenChange={() => setCurrentlyCollapsedSection(2)}
-                label="Colors">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsum magnam molestias, odio assumenda esse eos ratione tenetur officia hic ab fugit ad dicta cumque ipsa cum voluptate neque vitae quam.
-              </CollapsibleSection>
-            </div>
-            <div className="absolute z-30 bottom-0 w-full h-4 bg-gradient-to-b from-transparent to-neutral-800" />
-          </div>
-        </div>
+        <MainCard element={props.targetElement} />
         <TraversalCard
           targetElement={props.targetElement}
           onTargetElementChange={props.onTargetElementChange}
@@ -527,35 +252,249 @@ function MainCard(props: {
 }) {
   const tagName = props.element.tagName.toLowerCase()
   const computedStyle = window.getComputedStyle(props.element)
+  const computedStyleMap = props.element.computedStyleMap()
+  const targetData = {
+    tagName: tagName,
+    rect: props.element.getBoundingClientRect(),
+    computedStyle,
+    computedStyleMap,
+    isParentFlexOrGrid: props.element.parentElement ? ['flex', 'grid'].includes(window.getComputedStyle(props.element.parentElement).display) : false,
+    propertyValue: {
+      right: computedStyleMap.get('right')?.toString().replace('px', ''),
+      bottom: computedStyleMap.get('bottom')?.toString().replace('px', ''),
+      left: computedStyleMap.get('left')?.toString().replace('px', ''),
+      top: computedStyleMap.get('top')?.toString().replace('px', ''),
+      width: computedStyleMap.get('width')?.toString().replace('px', ''),
+      height: computedStyleMap.get('height')?.toString().replace('px', ''),
+    }
+  }
+
+  const [currentlyCollapsedSection, setCurrentlyCollapsedSection] = useState(0)
 
   return (
-    <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 [&>div]:px-4 rounded-lg flexcol-3/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
-      <div className="leading-3 text-sm font-medium ">
-        {tagName}{' '}
-        <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
-          {computedStyle.display}
-        </div>{' '}
-        {
-          computedStyle.position !== 'static' && <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
-            {computedStyle.position}
-          </div>
-        }
-      </div>
-      <hr />
-      <div className="relative -mt-3 pt-3 px-0! flex-1 min-h-0 flexcol">
-        <div className="absolute z-10 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800" />
-        <div className="flex-1 min-h-0 overflow-auto px-4 -my-3 py-3">
-          <div className="flexcol-2/stretch text-xs relative">
-            <div className="text-xs font-medium">
-              Layout
+    <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 pb-0 [&>div]:px-4 rounded-lg flexcol-0/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
+
+      <div className="flexcol-2 pb-2">
+        <div className="leading-3 text-sm font-medium ">
+          {tagName}{' '}
+          <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
+            {computedStyle.display}
+          </div>{' '}
+          {
+            computedStyle.position !== 'static' && <div className="inline-flex self-start text-xs leading-3! p-1 px-2 font-semibold bg-white/10 rounded-lg">
+              {computedStyle.position}
             </div>
-          </div>
+          }
         </div>
-        <div className="absolute z-10 -bottom-3 w-full h-3 bg-gradient-to-b from-transparent to-neutral-800" />
+      </div>
+
+
+      <hr className="border-neutral-700!" />
+      <div className="relative px-0! py-0! flex-1 min-h-0 flexcol">
+        <div className="absolute z-30 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800 pointer-events-none" />
+
+        <div className="flex-1 min-h-0 overflow-auto">
+          <CollapsibleSection
+            isOpen={currentlyCollapsedSection === 0}
+            onOpenChange={() => setCurrentlyCollapsedSection(0)}
+            label="Layout">
+            {/* Width & Height */}
+            <div className="tooltip-details grid grid-cols-2 gap-1 ">
+              <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-1.5">
+                <div className="text-white/50">W</div>
+                <Value val={formatString(targetData.computedStyleMap.get('height')?.toString())} defaultIf="auto" />
+
+                <AkarIconsAlignToMiddle className="text-white/50 rotate-90" />
+                <Value val={formatString(computedStyle.minHeight)} defaultIf="auto" />
+
+                <UilArrowsShrinkH className="text-white/50" />
+                <Value val={formatString(computedStyle.maxHeight)} defaultIf="none" />
+              </Field>
+
+              <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-1.5">
+                <div className="text-white/50">H</div>
+                <Value val={formatString(targetData.computedStyleMap.get('width')?.toString())} defaultIf="auto" />
+
+                <AkarIconsAlignToMiddle className="text-white/50" />
+                <Value val={formatString(computedStyle.minHeight)} defaultIf="auto" />
+
+                <UilArrowsShrinkV className="text-white/50" />
+                <Value val={formatString(computedStyle.maxHeight)} defaultIf="none" />
+              </Field>
+            </div>
+
+            {/* Margin & Padding & Dimension */}
+            <Field className="grid grid-cols-[1fr_1fr_min-content_1fr_1fr] grid-rows-5 *:flexrow-center/center text-xs text-center bg-white/5 p-1 rounded-lg">
+
+              {/* Row 1 */}
+              <div className=" text-white/50 self-start">m</div>
+              <div className="col-start-3"><Value val={targetData.computedStyle.marginTop.replace('px', '')} defaultIf="0" /></div>
+
+              {/* Row 2 */}
+              <div className="col-start-2 border-t border-l text-white/50">p</div>
+              <div className="border-t"><Value val={targetData.computedStyle.paddingTop.replace('px', '')} defaultIf="0" /></div>
+              <div className="border-t border-r" />
+
+              {/* Row 3 */}
+              <div className="mx-1 col-start-1"><Value val={targetData.computedStyle.marginLeft.replace('px', '')} defaultIf="0" /></div>
+              <div className="border-l"><Value val={targetData.computedStyle.paddingLeft.replace('px', '')} defaultIf="0" /></div>
+              <div className="opacity-25 px-2 py-1 gap-1">
+                {formatNumber(targetData.rect.width)} <span className="text-[0.8em]">✕</span> {formatNumber(targetData.rect.height)}
+              </div>
+              <div className="border-r"><Value val={targetData.computedStyle.paddingRight.replace('px', '')} defaultIf="0" /></div>
+              <div><Value val={targetData.computedStyle.marginRight.replace('px', '')} defaultIf="0" /></div>
+
+              {/* Row 4 */}
+              <div className="col-start-2 border-b border-l" />
+              <div className="border-b"><Value val={targetData.computedStyle.paddingBottom.replace('px', '')} defaultIf="0" /></div>
+              <div className="border-b border-r" />
+
+              {/* Row 5 */}
+              <div className="col-start-3"><Value val={targetData.computedStyle.marginBottom.replace('px', '')} defaultIf="0" /></div>
+            </Field>
+
+            {targetData.computedStyle.position !== "static" && <>
+              <div className="flexcol-1">
+                <div className="grid grid-cols-[1fr_2fr_1fr] self-stretch">
+                  <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center col-start-2">
+                    <div className="opacity-75">T</div>
+                    <div className=""><Value defaultIf="auto">{targetData.propertyValue.top}</Value></div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[1fr_1fr] gap-1 self-stretch">
+                  <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center">
+                    <div className="opacity-75">L</div>
+                    <div className=""><Value defaultIf="auto">{targetData.propertyValue.left}</Value></div>
+                  </div>
+                  <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center">
+                    <div className="opacity-75">R</div>
+                    <div className=""><Value defaultIf="auto">{targetData.propertyValue.right}</Value></div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[1fr_2fr_1fr] self-stretch">
+                  <div className="self-center h-6 p-2 pr-3 bg-white/5 rounded-sm flexrow-2/center col-start-2">
+                    <div className="opacity-75">B</div>
+                    <div className=""><Value defaultIf="auto">{targetData.propertyValue.bottom}</Value></div>
+                  </div>
+                </div>
+              </div>
+            </>}
+
+            {/* Flex */}
+            {
+              targetData.computedStyle.display === 'flex' && <div className="flexrow-2">
+                <div className="grid grid-cols-3 grid-rows-3 text-xs text-center bg-white/5 p-2 rounded-lg self-start relative group"
+                >
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  <div className="size-6 flexcol-center/center"><div className="size-1 rounded-full bg-white/10" /></div>
+                  {targetData.computedStyle.flexDirection === "column" &&
+                    <div className="absolute h-full w-0 border-l border-neutral-500! left-1/2">
+                      <div className="size-2 origin-bottom-right border-b border-r border-neutral-500! absolute bottom-0 right-0 -translate-x-[0.5px] rotate-45" />
+                    </div>
+                  }
+                  {targetData.computedStyle.flexDirection === "row" &&
+                    <div className="absolute w-full h-0 border-t border-neutral-500! top-1/2">
+                      <div className="size-2 origin-bottom-right border-b border-r border-neutral-500! absolute bottom-0 right-0 -translate-x-[0.5px] -rotate-45" />
+                    </div>
+                  }
+                  <div className="absolute inset-0 p-2 flex gap-0.5"
+                    style={{
+                      flexDirection: targetData.computedStyle.flexDirection as any,
+                      justifyContent: targetData.computedStyle.justifyContent,
+                      alignItems: targetData.computedStyle.alignItems,
+                    }}
+                  >
+                    <div className="min-h-6 min-w-6 flex items-center justify-center gap-0.5"
+                      style={{
+                        flexDirection: targetData.computedStyle.flexDirection as any,
+                        alignItems: targetData.computedStyle.alignItems,
+                        justifyContent: targetData.computedStyle.justifyContent,
+                        width: ['space-around', 'space-between', 'space-evenly', 'stretch'].includes(targetData.computedStyle.justifyContent) ? '100%' : 'unset',
+                        padding: ['space-around', 'space-between', 'space-evenly', 'stretch'].includes(targetData.computedStyle.justifyContent) ? '0' : '0.5rem',
+                      }}
+                    >
+                      <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.6rem', width: '0.15rem' } : { minWidth: '0.6rem', height: '0.15rem' }} />
+                      <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.8rem', width: '0.15rem' } : { minWidth: '0.8rem', height: '0.15rem' }} />
+                      <div className="rounded-full bg-blue-400" style={['row', 'row-reverse'].includes(targetData.computedStyle.flexDirection) ? { minHeight: '0.4rem', width: '0.15rem' } : { minWidth: '0.4rem', height: '0.15rem' }} />
+                    </div>
+                  </div>
+                </div>
+                asr
+
+                <div className="flexcol-2/stretch flex-1">
+                  <div className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
+                    <div className="text-center text-white/50"><LucideAlignHorizontalSpaceAround /></div>
+                    <div>
+                      <Value defaultIf="normal">
+                        {targetData.computedStyle.rowGap.replace('px', '')}
+                      </Value>
+                    </div>
+                  </div>
+                  <div className="flexrow-2/center h-6 bg-white/5 px-2 pr-3 rounded-sm leading-3">
+                    <div className="text-center text-white/50"><LucideAlignVerticalSpaceAround /></div>
+                    <div>
+                      <Value defaultIf="normal">
+                        {targetData.computedStyle.columnGap.replace('px', '')}
+                      </Value>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            {
+              // Later: Grid
+            }
+            {
+              targetData.isParentFlexOrGrid && <>
+                <div className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
+                  <div className="opacity-75">flex</div>
+                  <div className="flexrow-2/center">
+                    <Value defaultIf="0">{targetData.computedStyle.flexGrow}</Value>
+                    <Value defaultIf="1">{targetData.computedStyle.flexShrink}</Value>
+                    <Value defaultIf="auto">{targetData.computedStyle.flexBasis}</Value>
+                  </div>
+                </div>
+              </>
+            }
+            <div className="px-2 h-7 rounded-md flexrow-3/center bg-white/5 text-center">
+              <div className="opacity-75">z-index</div>
+              <div className="flexrow-2/center">
+                <Value defaultIf="auto">{targetData.computedStyle.zIndex}</Value>
+              </div>
+            </div>
+          </CollapsibleSection>
+          <hr className="border-neutral-700!" />
+          <CollapsibleSection
+            isOpen={currentlyCollapsedSection === 1}
+            onOpenChange={() => setCurrentlyCollapsedSection(1)}
+            label="Typography">
+            <TypographySection
+              element={props.element}
+              computedStyle={computedStyle}
+              computedStyleMap={computedStyleMap}
+            />
+          </CollapsibleSection>
+          <hr className="border-neutral-700!" />
+          <CollapsibleSection
+            isOpen={currentlyCollapsedSection === 2}
+            onOpenChange={() => setCurrentlyCollapsedSection(2)}
+            label="Colors">
+            {/* Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsum magnam molestias, odio assumenda esse eos ratione tenetur officia hic ab fugit ad dicta cumque ipsa cum voluptate neque vitae quam. */}
+          </CollapsibleSection>
+        </div>
+        <div className="absolute z-30 bottom-0 w-full h-4 bg-gradient-to-b from-transparent to-neutral-800 pointer-events-none" />
       </div>
     </div>
   )
 }
+
 
 function CollapsibleSection(props: {
   label: string,
@@ -564,7 +503,6 @@ function CollapsibleSection(props: {
   onOpenChange?: (open: boolean) => void,
   isOpen?: boolean,
 }) {
-  // const [open, setOpen] = useState(false)
   return (
     <div className={cn("flexcol-0/stretch text-xs relative shrink-0 pb-3", props.className)}>
       <div className="shrink-0 flexrow-space-between/center px-4 py-3 z-20 bg-gradient-to-t from-transparent to-neutral-800 to-50% cursor-pointer" onClick={() => props.onOpenChange?.(!props.isOpen)}>
@@ -585,6 +523,133 @@ function CollapsibleSection(props: {
     </div>
   )
 }
+
+function TypographySection(props: {
+  element: HTMLElement,
+  computedStyle: CSSStyleDeclaration,
+  computedStyleMap: StylePropertyMapReadOnly,
+}) {
+  const computedStyle = props.computedStyle
+  const computedStyleMap = props.computedStyleMap
+  const fontFamily = computedStyleMap.get('font-family')?.toString() ?? ''
+  const [mainFontFamily, ...restFontFamily] = fontFamily.split(', ')
+
+  const exactFontSize = Number(computedStyleMap.get('font-size')?.toString().replace('px', '')!)
+
+  const exactDocumentFontSize = Number(document.documentElement.computedStyleMap().get('font-size')?.toString()!.replace('px', '')!)
+  const fontSizeInRem = Math.round((exactFontSize / exactDocumentFontSize) * 100) / 100
+
+  const exactParentFontSize = Number(props.element.parentElement?.computedStyleMap().get('font-size')?.toString()!.replace('px', '')!)
+  const fontSizeInEm = Math.round((exactFontSize / exactParentFontSize) * 100) / 100
+  const isEmSameAsRem = fontSizeInEm === fontSizeInRem
+
+  const fontWeight = computedStyleMap.get('font-weight')?.toString()
+  const fontWeightSemantic = semanticFontWeight(Number(fontWeight))
+  const isVariableWeight = ![100, 200, 300, 400, 500, 600, 700, 800, 900].includes(Number(fontWeight))
+
+  const computedLetterSpacing = computedStyleMap.get('letter-spacing')?.toString()
+  const isNormalLetterSpacing = computedLetterSpacing === 'normal'
+  const exactLetterSpacing = computedLetterSpacing === "normal" ? 0 : Number(computedLetterSpacing?.replace('px', '')!)
+  const exactLetterSpacingDisplay = isNormalLetterSpacing ? 'normal' : exactLetterSpacing + 'px'
+  const letterSpacingInEm = Math.round((exactLetterSpacing / exactFontSize) * 100) / 100
+  const letterSpacingInEmDisplay = isNormalLetterSpacing ? 'normal' : letterSpacingInEm + 'em'
+
+  const isLeftAlign = computedStyle.textAlign === 'left' || (computedStyle.textAlign === 'start' && computedStyle.direction === 'ltr')
+  const isRightAlign = computedStyle.textAlign === 'right' || (computedStyle.textAlign === 'end' && computedStyle.direction === 'ltr')
+  const isCenterAlign = computedStyle.textAlign === 'center'
+  const isJustifyAlign = computedStyle.textAlign === 'justify'
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2">
+
+        {/* Row 1 */}
+        <Field className="col-span-2 text-wrap leading-4 py-1.5">
+          {mainFontFamily}<span className="opacity-50">, {restFontFamily.join(', ')}</span>
+        </Field>
+
+        {/* Row 2 */}
+        {/* Font Weight */}
+        <Field className="self-start grid grid-cols-[1rem_1fr] gap-y-1 text-wrap flex-1">
+          <MdiFormatLineWeight className="opacity-75" />
+          <Value val={fontWeight} defaultIf="400" />
+          <Value val={fontWeightSemantic} defaultIf="Normal" cn={cn("col-start-2 opacity-50 tracking-tight font-[0.75em]", isVariableWeight && "-ml-1.5")} />
+        </Field>
+        {/* Font Size */}
+        <Field className="grid grid-cols-[1rem_1fr] gap-y-1">
+          <AntDesignFontSizeOutlined />
+          <Value val={exactFontSize + 'px'} defaultIf="16px" />
+          <Value val={fontSizeInRem + 'rem'} defaultIf="1rem" cn="col-start-2 opacity-50" />
+          <Value val={fontSizeInEm + 'em'} defaultIf="1em" cn="col-start-2 opacity-50" hideIf={isEmSameAsRem} />
+        </Field>
+
+        {/* Row 3 */}
+        {/* Line Height */}
+        <Field className="grid grid-cols-[1rem_1fr] gap-y-1">
+          <MdiFormatLineHeight className="opacity-75" />
+          <Value val={computedStyleMap.get('line-height')?.toString()} defaultIf="normal" />
+          <Value val={computedStyle.lineHeight} defaultIf="normal" cn="col-start-2 opacity-50" />
+        </Field>
+        {/* Letter Spacing */}
+        <Field className="grid grid-cols-[1rem_1fr] gap-y-1">
+          <MaterialSymbolsFormatLetterSpacing2 className="opacity-75" />
+          <Value val={exactLetterSpacingDisplay} defaultIf="normal" />
+          <Value val={letterSpacingInEmDisplay} defaultIf="normal" cn="col-start-2 opacity-50" />
+        </Field>
+
+        {/* Row 4 */}
+        {/* Align */}
+        <Field className="col-span-2 contain-content flexrow-stretch p-0.5 *:h-6 *:flexrow-center/center *:flex-1 flex-1 text-neutral-600">
+          <div className={cn("data-selected:bg-blue-400/10 data-selected:text-blue-400 rounded-sm")} data-selected={isLeftAlign ? "" : undefined}>
+            <MdiFormatAlignLeft className="size-4" />
+          </div>
+          <div className={cn("data-selected:bg-blue-400/10 data-selected:text-blue-400 rounded-sm")} data-selected={isCenterAlign ? "" : undefined}>
+            <MdiFormatAlignCenter className="size-4" />
+          </div>
+          <div className={cn("data-selected:bg-blue-400/10 data-selected:text-blue-400 rounded-sm")} data-selected={isRightAlign ? "" : undefined}>
+            <MdiFormatAlignRight className="size-4" />
+          </div>
+          <div className={cn("data-selected:bg-blue-400/10 data-selected:text-blue-400 rounded-sm")} data-selected={isJustifyAlign ? "" : undefined}>
+            <MdiFormatAlignJustify className="size-4" />
+          </div>
+        </Field>
+
+      </div>
+    </>
+  )
+}
+function semanticFontWeight(weight: number): string {
+  const ranges = [
+    { name: "Thin", min: 1, max: 149, exact: 100 },
+    { name: "Extralight", min: 150, max: 249, exact: 200 },
+    { name: "Light", min: 250, max: 349, exact: 300 },
+    { name: "Normal", min: 350, max: 449, exact: 400 },
+    { name: "Medium", min: 450, max: 549, exact: 500 },
+    { name: "Semibold", min: 550, max: 649, exact: 600 },
+    { name: "Bold", min: 650, max: 749, exact: 700 },
+    { name: "Extrabold", min: 750, max: 849, exact: 800 },
+    { name: "Black", min: 850, max: 1000, exact: 900 }
+  ];
+
+  for (const range of ranges) {
+    if (weight >= range.min && weight <= range.max) {
+      const isExact = weight === range.exact;
+      return isExact ? range.name : `~${ range.name }`;
+    }
+  }
+  return "invalid";
+}
+
+function Field(props: ComponentProps<"div">) {
+  return (
+    <div {...props}
+      className={cn("bg-white/5 rounded-md p-2 leading-3 contain-inline-size", props.className)}
+    />
+  )
+}
+
+
+
 
 function TraversalCard(props: {
   targetElement: HTMLElement
@@ -763,14 +828,27 @@ function ElementMiniMinimap(props: {
 
 }
 
-
+function defaultIf(match: string, value?: string) {
+  if (value === match) return <span className="opacity-25">{value}</span>
+  return <>{value}</>
+}
 
 function Value(props: {
-  children?: string,
-  defaultIf: string,
+  children?: ReactNode,
+  val?: ReactNode,
+  defaultIf?: string,
+  hideIf?: boolean,
+  cn?: string
 }) {
-  if (props.children === props.defaultIf) return <span className="opacity-25">{props.children}</span>
-  return <>{props.children}</>
+  if (props.hideIf) return null
+  // if ((props.val ?? props.children) === props.defaultIf) return <div className={cn("opacity-25", props.cn)}>{props.val ?? props.children}</div>
+  return <div className={props.cn}>
+    {
+      (props.val ?? props.children) === props.defaultIf
+        ? <span className="opacity-25">{props.val ?? props.children}</span>
+        : <>{props.val ?? props.children}</>
+    }
+  </div>
 }
 function formatNumber(n: number) {
   return n % 1 === 0 ? n.toString() : n.toFixed(1);
@@ -853,5 +931,59 @@ export function UilArrowsShrinkH(props: SVGProps<SVGSVGElement>) {
 export function UilArrowsShrinkV(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Unicons by Iconscout - https://github.com/Iconscout/unicons/blob/master/LICENSE */}<path fill="currentColor" d="M13.79 10.21a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42l-2.5-2.5a1 1 0 0 0-.33-.21a1 1 0 0 0-.76 0a1 1 0 0 0-.33.21l-2.5 2.5a1 1 0 0 0 1.42 1.42l.79-.8v5.18l-.79-.8a1 1 0 0 0-1.42 1.42l2.5 2.5a1 1 0 0 0 .33.21a.94.94 0 0 0 .76 0a1 1 0 0 0 .33-.21l2.5-2.5a1 1 0 0 0-1.42-1.42l-.79.8V9.41ZM7 4h10a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2m10 16H7a1 1 0 0 0 0 2h10a1 1 0 0 0 0-2"></path></svg>
+  )
+}
+export function MdiFormatLineWeight(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Material Design Icons by Pictogrammers - https://github.com/Templarian/MaterialDesign/blob/master/LICENSE */}<path fill="currentColor" d="M3 17h18v-2H3zm0 3h18v-1H3zm0-7h18v-3H3zm0-9v4h18V4z"></path></svg>
+  )
+}
+
+export function AntDesignFontSizeOutlined(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 1024 1024" {...props}>{/* Icon from Ant Design Icons by HeskeyBaozi - https://github.com/ant-design/ant-design-icons/blob/master/LICENSE */}<path fill="currentColor" d="M920 416H616c-4.4 0-8 3.6-8 8v112c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-56h60v320h-46c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h164c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8h-46V480h60v56c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V424c0-4.4-3.6-8-8-8M656 296V168c0-4.4-3.6-8-8-8H104c-4.4 0-8 3.6-8 8v128c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8v-64h168v560h-92c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h264c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-92V232h168v64c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8"></path></svg>
+  )
+}
+
+export function ProiconsTextLineHeight(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from ProIcons by ProCode - https://github.com/ProCode-Software/proicons/blob/main/LICENSE */}<g fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5"><path strokeLinejoin="round" d="m2.75 18.345l1.992 2.037c.235.24.547.361.858.361m2.85-2.398l-1.992 2.037c-.235.24-.547.361-.858.361M2.75 5.61l2.002-2.002c.234-.234.54-.351.848-.351M8.45 5.61l-2-2.002a1.2 1.2 0 0 0-.849-.351m0 17.486V3.257"></path><path d="M11.55 4.25h9.7m-9.7 15.5h9.7"></path><path strokeLinejoin="round" d="m13.12 15.594l1.171-2.752m0 0h4.219m-4.219 0l1.796-4.218a.335.335 0 0 1 .627 0l1.796 4.217m0 0l1.172 2.753"></path></g></svg>
+  )
+}
+
+export function MaterialSymbolsFormatLetterSpacing2(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Material Symbols by Google - https://github.com/google/material-design-icons/blob/master/LICENSE */}<path fill="currentColor" d="m6 22l-4-4l4-4l1.425 1.4l-1.6 1.6h12.35L16.6 15.4L18 14l4 4l-4 4l-1.425-1.4l1.6-1.6H5.825L7.4 20.6zm.9-9L11 2h2l4.1 11h-1.9l-.95-2.8H9.8l-1 2.8zm3.45-4.4h3.3l-1.6-4.55h-.1z"></path></svg>
+  )
+}
+
+export function MdiFormatLineHeight(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Material Design Icons by Pictogrammers - https://github.com/Templarian/MaterialDesign/blob/master/LICENSE */}<path fill="currentColor" d="M21 22H3v-2h18zm0-18H3V2h18zm-11 9.7h4l-2-5.4zM11.2 6h1.7l4.7 12h-2l-.9-2.6H9.4L8.5 18h-2z"></path></svg>
+  )
+}
+
+export function MdiFormatAlignLeft(props: SVGProps<SVGSVGElement>) {
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 12H3m14 6H3M21 6H3"></path></svg>
+  )
+}
+export function MdiFormatAlignCenter(props: SVGProps<SVGSVGElement>) {
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M17 12H7m12 6H5M21 6H3"></path></svg>
+  )
+}
+export function MdiFormatAlignRight(props: SVGProps<SVGSVGElement>) {
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 12H9m12 6H7M21 6H3"></path></svg>
+  )
+}
+export function MdiFormatAlignJustify(props: SVGProps<SVGSVGElement>) {
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M3 12h18M3 18h18M3 6h18"></path></svg>
   )
 }
