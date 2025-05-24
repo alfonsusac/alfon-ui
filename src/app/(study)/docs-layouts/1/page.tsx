@@ -68,5 +68,5 @@ export default function DocsLayout1() {
   )
 }
 
-export const SidebarGutter = () => <div className="flex-none w-(--sidebar-w) max-lg:hidden" />
-export const TableOfContentGutter = () => <div className="flex-none w-(--toc-w) max-md:hidden" />
+const SidebarGutter = () => <div className="flex-none w-(--sidebar-w) max-lg:hidden" />
+const TableOfContentGutter = () => <div className="flex-none w-(--toc-w) max-md:hidden" />

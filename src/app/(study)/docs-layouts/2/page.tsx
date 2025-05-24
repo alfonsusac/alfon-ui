@@ -3,7 +3,7 @@ import { Content, CuidaSidebarExpandOutline, sidebarMockPages } from "../commons
 import { Button } from "@/lib/components/button"
 import { MaterialSymbolsDarkMode, MaterialSymbolsLightMode, PajamasGithub, PhCaretRightBold, PhListBold, PhMagnifyingGlassBold } from "../../layouts/commons"
 import { cn } from "lazy-cn"
-import { DesignDevtool } from "./client"
+import { DesignDevtool } from "./design-tooltip"
 
 export default function DocsLayout2() {
 

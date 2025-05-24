@@ -2,8 +2,9 @@
 
 import { Button } from "@/lib/components/button"
 import { LucideChevronDown } from "@/lib/components/input-base"
+import Color from "colorjs.io"
 import { cn } from "lazy-cn"
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode, type SVGProps } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type JSX, type ReactNode, type SVGProps } from "react"
 import { createPortal } from "react-dom"
 
 
@@ -269,8 +270,6 @@ function MainCard(props: {
     }
   }
 
-  const [currentlyCollapsedSection, setCurrentlyCollapsedSection] = useState(0)
-
   return (
     <div className="design-tooltip overflow-clip bg-neutral-800 py-3.5 pb-0 [&>div]:px-4 rounded-lg flexcol-0/stretch **:border-neutral-600 border-t min-h-0 pointer-events-auto">
 
@@ -294,10 +293,32 @@ function MainCard(props: {
         <div className="absolute z-30 top-0 w-full h-3 bg-gradient-to-t from-transparent to-neutral-800 pointer-events-none" />
 
         <div className="flex-1 min-h-0 overflow-auto">
-          <CollapsibleSection
-            isOpen={currentlyCollapsedSection === 0}
-            onOpenChange={() => setCurrentlyCollapsedSection(0)}
-            label="Layout">
+
+
+          <div className="flexcol-2/stretch relative p-3 text-xs">
+
+            <ColorSection
+              element={props.element}
+              computedStyle={computedStyle}
+              computedStyleMap={computedStyleMap}
+            />
+
+            <BorderSection
+              element={props.element}
+              computedStyle={computedStyle}
+              computedStyleMap={computedStyleMap}
+            />
+
+            <TypographySection
+              element={props.element}
+              computedStyle={computedStyle}
+              computedStyleMap={computedStyleMap}
+            />
+
+            <div className="opacity-25 -mb-1">
+              Layout
+            </div>
+
             {/* Width & Height */}
             <div className="grid grid-cols-2 gap-2">
               <Field className="grid grid-cols-[1rem_1fr] gap-1 gap-y-2">
@@ -468,25 +489,10 @@ function MainCard(props: {
                 <Value defaultIf="auto">{targetData.computedStyle.zIndex}</Value>
               </div>
             </Field>
-          </CollapsibleSection>
-          <hr className="border-neutral-700!" />
-          <CollapsibleSection
-            isOpen={currentlyCollapsedSection === 1}
-            onOpenChange={() => setCurrentlyCollapsedSection(1)}
-            label="Typography">
-            <TypographySection
-              element={props.element}
-              computedStyle={computedStyle}
-              computedStyleMap={computedStyleMap}
-            />
-          </CollapsibleSection>
-          <hr className="border-neutral-700!" />
-          <CollapsibleSection
-            isOpen={currentlyCollapsedSection === 2}
-            onOpenChange={() => setCurrentlyCollapsedSection(2)}
-            label="Colors">
-            {/* Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsum magnam molestias, odio assumenda esse eos ratione tenetur officia hic ab fugit ad dicta cumque ipsa cum voluptate neque vitae quam. */}
-          </CollapsibleSection>
+
+
+
+          </div>
         </div>
         <div className="absolute z-30 bottom-0 w-full h-4 bg-gradient-to-b from-transparent to-neutral-800 pointer-events-none" />
       </div>
@@ -494,31 +500,266 @@ function MainCard(props: {
   )
 }
 
-
-function CollapsibleSection(props: {
-  label: string,
-  children?: ReactNode,
-  className?: string,
-  onOpenChange?: (open: boolean) => void,
-  isOpen?: boolean,
+function ColorSection(props: {
+  element: HTMLElement,
+  computedStyle: CSSStyleDeclaration,
+  computedStyleMap: StylePropertyMapReadOnly,
 }) {
+  const computedStyle = props.computedStyle
+  const computedStyleMap = props.computedStyleMap
+
+  const toFormattedHexColor = (colorstr: string) => {
+    try {
+      // Remove exponential notation
+      const color = new Color(colorstr.replace(/-?\d+\.?\d*e[+-]?\d+/gi, num => Number(num).toFixed(6)))
+      const hex = color.to('srgb').toString({ format: 'hex', collapse: false })
+      const trimmed = hex.toUpperCase().replace('#', '')
+      return {
+        mainDisplay: trimmed.length === 8 && trimmed.endsWith('00') ? 'Transparent' : trimmed.slice(0, 6),
+        hexAlpha: trimmed.length === 8 ? trimmed.slice(6, 8) : undefined,
+        isTransparent: trimmed.length === 8 && trimmed.endsWith('00'),
+        alphaPercent: color.alpha * 100,
+        raw: colorstr,
+      }
+    } catch {
+      return {
+        raw: colorstr,
+      }
+    }
+  }
+
+  const displayedTextColor = toFormattedHexColor(computedStyle.color)
+  const displayedBkgrColor = toFormattedHexColor(computedStyle.backgroundColor)
+
   return (
-    <div className={cn("flexcol-0/stretch text-xs relative shrink-0 pb-3", props.className)}>
-      <div className="shrink-0 flexrow-space-between/center px-4 py-3 z-20 bg-gradient-to-t from-transparent to-neutral-800 to-50% cursor-pointer" onClick={() => props.onOpenChange?.(!props.isOpen)}>
-        <div className="text-xs font-medium">
-          {props.label}
-        </div>
-        <div className={cn(props.isOpen && "rotate-180", "transition")}>
-          <LucideChevronDown />
-        </div>
+    <div className="flexcol-2/stretch text-xs">
+      <Field className="grid grid-cols-[min-content_min-content_1fr_2rem] gap-1">
+        <BiFonts className="text-white/50 mr-1" />
+        <div className="size-3 border rounded-xs aspect-square" style={{ backgroundColor: computedStyle.color }} />
+        {
+          displayedTextColor.isTransparent
+            ? <span className="text-neutral-500">Transparent</span>
+            : <>
+              <span className="">{displayedTextColor.mainDisplay}<span className="opacity-50">{displayedTextColor.hexAlpha}</span></span>
+              <div className="text-end">{displayedTextColor.alphaPercent}%</div>
+            </>
+        }
+      </Field>
+      <Field className="grid grid-cols-[min-content_min-content_1fr_2rem] gap-1">
+        <HugeiconsBackground className="text-white/50 mr-1" />
+        <div className="size-3 border rounded-xs aspect-square" style={{ backgroundColor: computedStyle.backgroundColor }} />
+        {
+          displayedBkgrColor.isTransparent
+            ? <span className="text-neutral-500">Transparent</span>
+            : <>
+              <span className="">{displayedBkgrColor.mainDisplay}<span className="opacity-50">{displayedBkgrColor.hexAlpha}</span></span>
+              <div className="text-end">{displayedBkgrColor.alphaPercent}%</div>
+            </>
+        }
+      </Field>
+
+    </div>
+  )
+}
+
+function BorderSection(props: {
+  element: HTMLElement,
+  computedStyle: CSSStyleDeclaration,
+  computedStyleMap: StylePropertyMapReadOnly,
+}) {
+  const borderTop = {
+    width: props.computedStyleMap.get('border-top-width')?.toString(),
+    color: props.computedStyleMap.get('border-top-color')?.toString(),
+    isPresent: props.computedStyleMap.get('border-top-width')?.toString() !== '0px',
+    str: props.computedStyleMap.get('border-top-width')?.toString() + ' ' + props.computedStyleMap.get('border-top-color')?.toString(),
+  }
+  const borderLeft = {
+    width: props.computedStyleMap.get('border-left-width')?.toString(),
+    color: props.computedStyleMap.get('border-left-color')?.toString(),
+    isPresent: props.computedStyleMap.get('border-left-width')?.toString() !== '0px',
+    str: props.computedStyleMap.get('border-left-width')?.toString() + ' ' + props.computedStyleMap.get('border-left-color')?.toString(),
+  }
+  const borderRight = {
+    width: props.computedStyleMap.get('border-right-width')?.toString(),
+    color: props.computedStyleMap.get('border-right-color')?.toString(),
+    isPresent: props.computedStyleMap.get('border-right-width')?.toString() !== '0px',
+    str: props.computedStyleMap.get('border-right-width')?.toString() + ' ' + props.computedStyleMap.get('border-right-color')?.toString(),
+  }
+  const borderBottom = {
+    width: props.computedStyleMap.get('border-bottom-width')?.toString(),
+    color: props.computedStyleMap.get('border-bottom-color')?.toString(),
+    isPresent: props.computedStyleMap.get('border-bottom-width')?.toString() !== '0px',
+    str: props.computedStyleMap.get('border-bottom-width')?.toString() + ' ' + props.computedStyleMap.get('border-bottom-color')?.toString(),
+  }
+
+  const displays: {
+    width: string,
+    color: string,
+    icon: JSX.Element,
+  }[] = []
+
+
+  if (
+    borderTop.str === borderLeft.str &&
+    borderTop.str === borderRight.str &&
+    borderTop.str === borderBottom.str
+  ) {
+    if (borderTop.isPresent) {
+      displays.push({
+        width: borderTop.width!,
+        color: borderTop.color!,
+        icon: <div className="size-[1em] border border-dotted" style={{ border: "solid rgba(255,255,255,50%)" }} />,
+      })
+    }
+  } else {
+    // Havent tested this part
+    if (borderTop.str === borderBottom.str) {
+      if (borderTop.isPresent) {
+        displays.push({
+          width: borderTop.width!,
+          color: borderTop.color!,
+          icon: <div className="size-[1em] border border-dotted" style={{ borderBlock: 'solid rgba(255,255,255,50%)' }} />,
+        })
+      }
+    } else {
+      if (borderTop.isPresent) {
+        displays.push({
+          width: borderTop.width!,
+          color: borderTop.color!,
+          icon: <div className="size-[1em] border border-dotted" style={{ borderTop: 'solid rgba(255,255,255,50%)' }} />,
+        })
+      }
+      if (borderBottom.isPresent) {
+        displays.push({
+          width: borderBottom.width!,
+          color: borderBottom.color!,
+          icon: <div className="size-[1em] border border-dotted" style={{ borderBottom: 'solid rgba(255,255,255,50%)' }} />,
+        })
+      }
+    }
+    if (borderLeft.str === borderRight.str) {
+      if (borderLeft.isPresent) {
+        displays.push({
+          width: borderLeft.width!,
+          color: borderLeft.color!,
+          icon: <div className="size-[1em] border border-dotted" style={{ borderInline: 'solid rgba(255,255,255,50%)' }} />,
+        })
+      }
+    } else {
+      if (borderLeft.isPresent) {
+        displays.push({
+          width: borderLeft.width!,
+          color: borderLeft.color!,
+          icon: <div className="size-[1em] border border-dotted" style={{ borderLeft: 'solid rgba(255,255,255,50%)' }} />,
+        })
+      }
+      if (borderRight.isPresent) {
+        displays.push({
+          width: borderRight.width!,
+          color: borderRight.color!,
+          icon: <div className="size-[1em] border border-dotted" style={{ borderRight: 'solid rgba(255,255,255,50%)' }} />,
+        })
+      }
+    }
+  }
+
+  const borderRadius = {
+    topLeft: Number(props.computedStyleMap.get('border-top-left-radius')?.toString().replace('px', '')),
+    topRight: Number(props.computedStyleMap.get('border-top-right-radius')?.toString().replace('px', '')),
+    bottomLeft: Number(props.computedStyleMap.get('border-bottom-left-radius')?.toString().replace('px', '')),
+    bottomRight: Number(props.computedStyleMap.get('border-bottom-right-radius')?.toString().replace('px', '')),
+  }
+
+  const isAllEqual = (
+    borderRadius.topLeft === borderRadius.topRight &&
+    borderRadius.topLeft === borderRadius.bottomLeft &&
+    borderRadius.topLeft === borderRadius.bottomRight
+  )
+
+  const opacity = Number(props.computedStyle.opacity)
+
+  const formatRadius = (num: number) => {
+    return num > 9999 ? 'Full' : num + 'px'
+  }
+
+
+  return (
+    <div className="flexcol-2/stretch text-xs">
+      {displays.map((display, i) => {
+        return (
+          <Field key={i} className="grid grid-cols-[min-content_1fr_2rem] gap-1 gap-x-2">
+            {display.icon}
+            <ColorChip color={display.color} />
+            <Value val={display.width} defaultIf="0" cn="text-end" />
+          </Field>
+        )
+      })}
+      <div className="grid grid-cols-2 gap-2">
+        <Field className="grid grid-cols-[1rem_1fr] gap-1">
+          <FluentTransparencySquare24Filled className="opacity-50" />
+          <Value val={(opacity * 100) + '%'} defaultIf="100%" />
+        </Field>
+        <Field className="grid grid-cols-[1rem_1fr] gap-1">
+          <MdiBorderRadius className="opacity-50" />
+          {
+            isAllEqual
+              ? <Value val={formatRadius(borderRadius.topLeft)} defaultIf="0px" />
+              : <span className="text-neutral-500">Mixed</span>
+          }
+        </Field>
       </div>
-      <div className="transition-[grid-template-rows] duration-300 grid grid-rows-[0fr] data-open:grid-rows-[1fr] overflow-clip -mt-3" data-open={props.isOpen ? "" : undefined}>
-        <div className="min-h-0">
-          <div className="flexcol-2/stretch relative p-3 px-4 pb-0">
-            {props.children}
-          </div>
+      {!isAllEqual && <>
+        <div className="grid grid-cols-2 gap-2">
+          <Field className="grid grid-cols-[1rem_1fr] gap-1">
+            <TablerRadiusTopLeft className="opacity-50" />
+            <Value val={formatRadius(borderRadius.topLeft)} defaultIf="0px" />
+          </Field>
         </div>
-      </div>
+      </>}
+    </div>
+  )
+}
+
+function ColorChip(props: {
+  color?: string,
+  withAlphaPercent?: boolean,
+  className?: string
+}) {
+  const toFormattedHexColor = (colorstr: string) => {
+    try {
+      // Remove exponential notation
+      const color = new Color(colorstr.replace(/-?\d+\.?\d*e[+-]?\d+/gi, num => Number(num).toFixed(6)))
+      const hex = color.to('srgb').toString({ format: 'hex', collapse: false })
+      const trimmed = hex.toUpperCase().replace('#', '')
+      // return trimmed.length === 8 && trimmed.endsWith('00') ? 'Transparent' : trimmed.slice(0, 6)
+      return {
+        mainDisplay: trimmed.length === 8 && trimmed.endsWith('00') ? 'Transparent' : trimmed.slice(0, 6),
+        hexAlpha: trimmed.length === 8 ? trimmed.slice(6, 8) : undefined,
+        isTransparent: trimmed.length === 8 && trimmed.endsWith('00'),
+        alphaPercent: color.alpha * 100,
+        raw: colorstr,
+      }
+    } catch {
+      return {
+        raw: colorstr,
+      }
+    }
+  }
+  const formatted = toFormattedHexColor(props.color ?? '')
+
+  return (
+    <div className={cn("flexrow-1/center", props.className)}>
+      <div className="size-3 border rounded-xs aspect-square shrink-0" style={{ backgroundColor: formatted.raw }} />
+      {
+        formatted.isTransparent
+          ? <div className="text-neutral-500">Transparent</div>
+          : <>
+            <div className="grow">{formatted.mainDisplay}<span className="opacity-50">{formatted.hexAlpha}</span></div>
+            {
+              props.withAlphaPercent && <div className="text-end">{formatted.alphaPercent}%</div>
+            }
+          </>
+      }
     </div>
   )
 }
@@ -528,6 +769,9 @@ function TypographySection(props: {
   computedStyle: CSSStyleDeclaration,
   computedStyleMap: StylePropertyMapReadOnly,
 }) {
+  const doesContainDirectText = Array.from(props.element.childNodes).some(c => c.nodeType === Node.TEXT_NODE && c.textContent?.trim() !== '')
+  if (!doesContainDirectText) return null
+
   const computedStyle = props.computedStyle
   const computedStyleMap = props.computedStyleMap
   const fontFamily = computedStyleMap.get('font-family')?.toString() ?? ''
@@ -562,6 +806,10 @@ function TypographySection(props: {
     <>
       <div className="grid grid-cols-2 gap-2">
 
+        <div className="opacity-25 -mb-1 mt-1">
+          Typography
+        </div>
+
         {/* Row 1 */}
         <Field className="col-span-2 text-wrap leading-4 py-1.5">
           {mainFontFamily}<span className="opacity-50">, {restFontFamily.join(', ')}</span>
@@ -579,7 +827,9 @@ function TypographySection(props: {
           <AntDesignFontSizeOutlined />
           <Value val={exactFontSize + 'px'} defaultIf="16px" />
           <Value val={fontSizeInRem + 'rem'} defaultIf="1rem" cn="col-start-2 opacity-50" />
+
           <Value val={fontSizeInEm + 'em'} defaultIf="1em" cn="col-start-2 opacity-50" hideIf={isEmSameAsRem} />
+
         </Field>
 
         {/* Row 3 */}
@@ -642,7 +892,7 @@ function semanticFontWeight(weight: number): string {
 function Field(props: ComponentProps<"div">) {
   return (
     <div {...props}
-      className={cn("bg-white/5 rounded-md p-2 py-1.5 leading-3 contain-inline-size",
+      className={cn("bg-white/5 rounded-md p-2 py-1.5 leading-3 contain-inline-size overflow-clip",
         // "shadow-[inset_0_0.1rem_0.1rem_-0.1rem_#fff2,inset_0_-0.05rem_#0005,0_0.1rem_0.1rem_-0.05rem_#0002]",
         "shadow-[inset_0_0.1rem_0.1rem_-0.1rem_#fff2]",
         props.className)}
@@ -838,7 +1088,7 @@ function defaultIf(match: string, value?: string) {
 function Value(props: {
   children?: ReactNode,
   val?: ReactNode,
-  defaultIf?: string,
+  defaultIf?: string | boolean,
   hideIf?: boolean,
   cn?: string
 }) {
@@ -987,5 +1237,56 @@ export function MdiFormatAlignJustify(props: SVGProps<SVGSVGElement>) {
 
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Lucide by Lucide Contributors - https://github.com/lucide-icons/lucide/blob/main/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M3 12h18M3 18h18M3 6h18"></path></svg>
+  )
+}
+export function BiFonts(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16" {...props}>{/* Icon from Bootstrap Icons by The Bootstrap Authors - https://github.com/twbs/icons/blob/main/LICENSE.md */}<path fill="currentColor" d="M12.258 3h-8.51l-.083 2.46h.479c.26-1.544.758-1.783 2.693-1.845l.424-.013v7.827c0 .663-.144.82-1.3.923v.52h4.082v-.52c-1.162-.103-1.306-.26-1.306-.923V3.602l.431.013c1.934.062 2.434.301 2.693 1.846h.479z"></path></svg>
+  )
+}
+export function HugeiconsBackground(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Huge Icons by Hugeicons - undefined */}<path fill="currentColor" d="M12.747 22.315h.002q.764 0 1.442-.002a1 1 0 0 0 .121 0c3.393-.02 5.26-.172 6.676-1.378c.24-.2.44-.41.64-.64c1.38-1.62 1.38-3.83 1.38-8.24s0-6.62-1.38-8.24c-.2-.24-.41-.44-.64-.64c-1.62-1.38-3.83-1.38-8.24-1.38s-6.62 0-8.24 1.38c-.24.2-.44.41-.64.64c-1.38 1.62-1.38 3.83-1.38 8.24s0 6.62 1.38 8.24c.2.24.41.44.64.64c1.62 1.38 3.84 1.38 8.24 1.38m.001-1.52c-.796 0-1.513 0-2.162-.008L21.48 9.884q.01.975.008 2.17v1.211l-7.53 7.529zm7.26-1.02c-.805.685-1.986.91-3.894.984l5.338-5.339c-.074 1.909-.299 3.09-.984 3.895c-.14.17-.29.32-.46.46M11.556 3.316l1.192-.001q1.198-.002 2.173.008L4.016 14.236c-.008-.653-.008-1.378-.008-2.181l.001-1.192zm-2.154.034L4.044 8.71c.073-1.92.297-3.106.984-3.914c.14-.17.29-.32.46-.46c.81-.688 1.991-.912 3.914-.985m10.265.736L4.779 18.973c-.402-.645-.594-1.5-.686-2.692L16.965 3.399c1.197.091 2.055.284 2.702.687M5.84 20.03L20.725 5.148c.398.645.588 1.5.68 2.69L8.542 20.713c-1.195-.09-2.054-.282-2.7-.68" color="currentColor"></path></svg>
+  )
+}
+
+
+
+export function UimBorderTop(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Unicons Monochrome by Iconscout - https://github.com/Iconscout/unicons/blob/master/LICENSE */}<path fill="currentColor" d="M20 4.5H4a1 1 0 0 1 0-2h16a1 1 0 0 1 0 2"></path><circle cx="12" cy="7.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12" cy="11.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12" cy="15.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12" cy="19.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="7.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="11.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="15.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="19.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="16" cy="19.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8" cy="19.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="16" cy="11.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8" cy="11.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="7.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="11.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="15.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="19.5" r="1" fill="currentColor" opacity=".5"></circle></svg>
+  )
+}
+export function UimBorderRight(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Unicons Monochrome by Iconscout - https://github.com/Iconscout/unicons/blob/master/LICENSE */}<path fill="currentColor" d="M20.5 21a1 1 0 0 1-1-1V4a1 1 0 0 1 2 0v16a1 1 0 0 1-1 1"></path><circle cx="16.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="16.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4.5" cy="16" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4.5" cy="8" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12.5" cy="16" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12.5" cy="8" r="1" fill="currentColor" opacity=".5"></circle><circle cx="16.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle></svg>
+  )
+}
+export function UimBorderBottom(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Unicons Monochrome by Iconscout - https://github.com/Iconscout/unicons/blob/master/LICENSE */}<path fill="currentColor" d="M20 21.5H4a1 1 0 0 1 0-2h16a1 1 0 0 1 0 2"></path><circle cx="12" cy="16.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12" cy="12.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12" cy="8.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="12" cy="4.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="16.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="12.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="8.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="4" cy="4.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8" cy="4.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="16" cy="4.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="8" cy="12.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="16" cy="12.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="16.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="12.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="8.5" r="1" fill="currentColor" opacity=".5"></circle><circle cx="20" cy="4.5" r="1" fill="currentColor" opacity=".5"></circle></svg>
+  )
+}
+export function UimBorderLeft(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Unicons Monochrome by Iconscout - https://github.com/Iconscout/unicons/blob/master/LICENSE */}<path fill="currentColor" d="M3.5 21a1 1 0 0 1-1-1V4a1 1 0 0 1 2 0v16a1 1 0 0 1-1 1"></path><circle cx="7.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="11.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="15.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="19.5" cy="12" r="1" fill="currentColor" opacity=".5"></circle><circle cx="7.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="11.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="15.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="19.5" cy="4" r="1" fill="currentColor" opacity=".5"></circle><circle cx="19.5" cy="8" r="1" fill="currentColor" opacity=".5"></circle><circle cx="19.5" cy="16" r="1" fill="currentColor" opacity=".5"></circle><circle cx="11.5" cy="8" r="1" fill="currentColor" opacity=".5"></circle><circle cx="11.5" cy="16" r="1" fill="currentColor" opacity=".5"></circle><circle cx="7.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="11.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="15.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle><circle cx="19.5" cy="20" r="1" fill="currentColor" opacity=".5"></circle></svg>
+  )
+}
+
+
+export function TablerRadiusTopLeft(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Tabler Icons by Paweł Kuna - https://github.com/tabler/tabler-icons/blob/master/LICENSE */}<path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 19v-6a8 8 0 0 1 8-8h6"></path></svg>
+  )
+}
+
+export function FluentTransparencySquare24Filled(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE */}<path fill="currentColor" d="M6.25 2.5A3.75 3.75 0 0 0 2.5 6.25v11.5a3.75 3.75 0 0 0 3.75 3.75h11.5a3.75 3.75 0 0 0 3.75-3.75V6.25a3.75 3.75 0 0 0-3.75-3.75zM4.5 6.25c0-.966.784-1.75 1.75-1.75H8V8H4.5zm0 5.75H8V8h4V4.5h4V8h3.5v4H16v4h3.5v1.75a1.75 1.75 0 0 1-1.75 1.75H16V16h-4v3.5H8V16H4.5zm7.5 0v4H8v-4zm0 0h4V8h-4z"></path></svg>
+  )
+}
+export function MdiBorderRadius(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>{/* Icon from Material Design Icons by Pictogrammers - https://github.com/Templarian/MaterialDesign/blob/master/LICENSE */}<path fill="currentColor" d="M3 16c0 2.8 2.2 5 5 5h2v-2H8c-1.7 0-3-1.3-3-3v-2H3zm18-8c0-2.8-2.2-5-5-5h-2v2h2c1.7 0 3 1.3 3 3v2h2zm-5 13c2.8 0 5-2.2 5-5v-2h-2v2c0 1.7-1.3 3-3 3h-2v2zM8 3C5.2 3 3 5.2 3 8v2h2V8c0-1.7 1.3-3 3-3h2V3z"></path></svg>
   )
 }
