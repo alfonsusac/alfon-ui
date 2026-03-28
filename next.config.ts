@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
 
 const withMDX = createMDX({
   options: {
-    // @ts-expect-error
     remarkPlugins: [['remark-frontmatter', { type: 'yaml', marker: '-' }]],
     rehypePlugins: [],
   }
